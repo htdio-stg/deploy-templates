@@ -6,9 +6,9 @@
 
 | Cloud Provider | Deploy Button |
 |---------------|---------------|
-| AWS | [![Deploy to AWS](https://github.com/htdio-stg/deploy-templates/blob/main/.assets/img/aws.svg)]([deploy_path_aws_cfn]) |
-| DigitalOcean | [![Deploy to DigitalOcean](https://deploystack.io/deploy-to-digitalocean.svg)]([deploy_path_do_dop) |
-| Render | [![Deploy to Render](https://github.com/htdio-stg/deploy-templates/blob/main/.assets/img/deploy-to-render-button.svg)]([deploy_path_rnd_rnd]) |
+| AWS | <a href="[deploy_path_aws_cfn]"><img src="https://github.com/htdio-stg/deploy-templates/blob/main/.assets/img/aws.svg" height="28"></a> |
+| DigitalOcean | <a href="[deploy_path_do_dop]"><img src="https://github.com/htdio-stg/deploy-templates/blob/main/.assets/img/deploy-to-digitalocean.svg" height="28"></a> |
+| Render | <a href="[deploy_path_rnd_rnd]"><img src="https://github.com/htdio-stg/deploy-templates/blob/main/.assets/img/deploy-to-render-button.svg" height="28"></a> |
 
 ## 📦 What's Inside
 
