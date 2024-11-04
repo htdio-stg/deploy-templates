@@ -1,4 +1,4 @@
-# 🚀 Generated IaC Templates for [Repository Name]
+# 🚀 Generated IaC Templates for [repository_name]
 
 > This repository contains automatically generated Infrastructure as Code templates by [DeployStack.io](https://deploystack.io/c/[app_url])
 
