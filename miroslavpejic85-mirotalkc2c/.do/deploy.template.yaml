@@ -1,0 +1,16 @@
+spec:
+  name: deploystack
+  region: nyc
+  services:
+    - name: mirotalkc2c
+      image:
+        registry_type: DOCKER_HUB
+        repository: mirotalk/c2c
+        tag: latest
+      http_port: null
+      instance_count: 1
+      instance_size_slug: basic-xxs
+      run_command: ""
+      envs: []
+      routes:
+        - path: /
