@@ -1,0 +1,39 @@
+services:
+  - name: typebot-db
+    type: web
+    env: docker
+    runtime: image
+    image:
+      url: docker.io/library/postgres:16
+    startCommand: ""
+    plan: free
+    region: oregon
+    envVars:
+      - key: POSTGRES_DB
+        value: typebot
+      - key: POSTGRES_PASSWORD
+        value: typebot
+  - name: typebot-builder
+    type: web
+    env: docker
+    runtime: image
+    image:
+      url: docker.io/library/baptistearno/typebot-builder:latest
+    startCommand: ""
+    plan: free
+    region: oregon
+    envVars:
+      - key: PORT
+        value: 8080
+  - name: typebot-viewer
+    type: web
+    env: docker
+    runtime: image
+    image:
+      url: docker.io/library/baptistearno/typebot-viewer:latest
+    startCommand: ""
+    plan: free
+    region: oregon
+    envVars:
+      - key: PORT
+        value: 8081
