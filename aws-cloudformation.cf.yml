@@ -1,0 +1,196 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Deplo.my CFN template translated from Docker compose
+Parameters:
+  VPC:
+    Type: AWS::EC2::VPC::Id
+  SubnetA:
+    Type: AWS::EC2::Subnet::Id
+  SubnetB:
+    Type: AWS::EC2::Subnet::Id
+  ServiceName:
+    Type: String
+    Default: DeployStackService
+Resources:
+  Cluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: !Join ['', [!Ref ServiceName, Cluster]]
+  ExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Join ['', [!Ref ServiceName, ExecutionRole]]
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+  TaskRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Join ['', [!Ref ServiceName, TaskRole]]
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+  LogGroupapp:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Join ['', [/ecs/, !Ref ServiceName, TaskDefinitionapp]]
+  TaskDefinitionapp:
+    Type: AWS::ECS::TaskDefinition
+    DependsOn: LogGroupapp
+    Properties:
+      Family: !Join ['', [!Ref ServiceName, TaskDefinitionapp]]
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      Cpu: 512
+      Memory: 1GB
+      ExecutionRoleArn: !Ref ExecutionRole
+      TaskRoleArn: !Ref TaskRole
+      ContainerDefinitions:
+        - Name: app
+          Command:
+            - sh
+            - -c
+            - ./listmonk
+            - --install
+            - --idempotent
+            - --yes
+            - --config
+            - "''"
+            - "&&"
+            - ./listmonk
+            - --upgrade
+            - --yes
+            - --config
+            - "''"
+            - "&&"
+            - ./listmonk
+            - --config
+            - "''"
+          Image: docker.io/listmonk/listmonk:latest
+          PortMappings:
+            - ContainerPort: 9000
+          Environment:
+            - name: LISTMONK_app__address
+              value: 0.0.0.0:9000
+            - name: LISTMONK_db__user
+              value: listmonk
+            - name: LISTMONK_db__password
+              value: listmonk
+            - name: LISTMONK_db__database
+              value: listmonk
+            - name: LISTMONK_db__host
+              value: listmonk_db
+            - name: LISTMONK_db__port
+              value: "5432"
+            - name: LISTMONK_db__ssl_mode
+              value: disable
+            - name: LISTMONK_db__max_open
+              value: "25"
+            - name: LISTMONK_db__max_idle
+              value: "25"
+            - name: LISTMONK_db__max_lifetime
+              value: 300s
+            - name: TZ
+              value: Etc/UTC
+            - name: LISTMONK_ADMIN_USER
+              value: ${LISTMONK_ADMIN_USER:-}
+            - name: LISTMONK_ADMIN_PASSWORD
+              value: ${LISTMONK_ADMIN_PASSWORD:-}
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-region: !Ref AWS::Region
+              awslogs-group: !Ref LogGroupapp
+              awslogs-stream-prefix: ecs
+  ContainerSecurityGroupapp:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Join ['', [app, ContainerSecurityGroup]]
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 9000
+          ToPort: 9000
+          CidrIp: 0.0.0.0/0
+  Serviceapp:
+    Type: AWS::ECS::Service
+    Properties:
+      ServiceName: app
+      Cluster: !Ref Cluster
+      TaskDefinition: !Ref TaskDefinitionapp
+      DesiredCount: 1
+      LaunchType: FARGATE
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          Subnets:
+            - !Ref SubnetA
+            - !Ref SubnetB
+          SecurityGroups:
+            - !Ref ContainerSecurityGroupapp
+  LogGroupdb:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Join ['', [/ecs/, !Ref ServiceName, TaskDefinitiondb]]
+  TaskDefinitiondb:
+    Type: AWS::ECS::TaskDefinition
+    DependsOn: LogGroupdb
+    Properties:
+      Family: !Join ['', [!Ref ServiceName, TaskDefinitiondb]]
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      Cpu: 512
+      Memory: 1GB
+      ExecutionRoleArn: !Ref ExecutionRole
+      TaskRoleArn: !Ref TaskRole
+      ContainerDefinitions:
+        - Name: db
+          Command:
+            - ""
+          Image: docker.io/library/postgres:17-alpine
+          PortMappings:
+            - ContainerPort: 5432
+          Environment:
+            - name: <<
+              value: "[object Object]"
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-region: !Ref AWS::Region
+              awslogs-group: !Ref LogGroupdb
+              awslogs-stream-prefix: ecs
+  ContainerSecurityGroupdb:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Join ['', [db, ContainerSecurityGroup]]
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          CidrIp: 0.0.0.0/0
+  Servicedb:
+    Type: AWS::ECS::Service
+    Properties:
+      ServiceName: db
+      Cluster: !Ref Cluster
+      TaskDefinition: !Ref TaskDefinitiondb
+      DesiredCount: 1
+      LaunchType: FARGATE
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          Subnets:
+            - !Ref SubnetA
+            - !Ref SubnetB
+          SecurityGroups:
+            - !Ref ContainerSecurityGroupdb
