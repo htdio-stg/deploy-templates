@@ -1,0 +1,54 @@
+services:
+  - name: app
+    type: web
+    env: docker
+    runtime: image
+    image:
+      url: docker.io/listmonk/listmonk:latest
+    startCommand: sh -c ./listmonk --install --idempotent --yes --config '' &&
+      ./listmonk --upgrade --yes --config '' && ./listmonk --config ''
+    plan: free
+    region: oregon
+    envVars:
+      - key: LISTMONK_app__address
+        value: 0.0.0.0:9000
+      - key: LISTMONK_db__user
+        value: listmonk
+      - key: LISTMONK_db__password
+        value: listmonk
+      - key: LISTMONK_db__database
+        value: listmonk
+      - key: LISTMONK_db__host
+        value: listmonk_db
+      - key: LISTMONK_db__port
+        value: "5432"
+      - key: LISTMONK_db__ssl_mode
+        value: disable
+      - key: LISTMONK_db__max_open
+        value: "25"
+      - key: LISTMONK_db__max_idle
+        value: "25"
+      - key: LISTMONK_db__max_lifetime
+        value: 300s
+      - key: TZ
+        value: Etc/UTC
+      - key: LISTMONK_ADMIN_USER
+        value: ${LISTMONK_ADMIN_USER:-}
+      - key: LISTMONK_ADMIN_PASSWORD
+        value: ${LISTMONK_ADMIN_PASSWORD:-}
+      - key: PORT
+        value: "9000"
+  - name: db
+    type: web
+    env: docker
+    runtime: image
+    image:
+      url: docker.io/library/postgres:17-alpine
+    startCommand: ""
+    plan: free
+    region: oregon
+    envVars:
+      - key: <<
+        value: "[object Object]"
+      - key: PORT
+        value: "5432"
