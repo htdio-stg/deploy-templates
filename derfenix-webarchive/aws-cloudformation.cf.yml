@@ -55,10 +55,11 @@ Resources:
       TaskRoleArn: !Ref TaskRole
       ContainerDefinitions:
         - Name: webarchive
-          Command: []
-          Image: docker.io/ghcr.io/derfenix/webarchive:latest
+          Command:
+            - ""
+          Image: ghcr.io/derfenix/webarchive:latest
           PortMappings:
-            - ContainerPort: null
+            - ContainerPort: 5001
           Environment:
             - name: LOGGING_DEBUG
               value: "true"
@@ -81,8 +82,8 @@ Resources:
       VpcId: !Ref VPC
       SecurityGroupIngress:
         - IpProtocol: tcp
-          FromPort: null
-          ToPort: null
+          FromPort: 5001
+          ToPort: 5001
           CidrIp: 0.0.0.0/0
   Servicewebarchive:
     Type: AWS::ECS::Service

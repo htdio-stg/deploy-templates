@@ -4,7 +4,7 @@ services:
     env: docker
     runtime: image
     image:
-      url: docker.io/library/ghcr.io/derfenix/webarchive:latest
+      url: ghcr.io/derfenix/webarchive:latest
     startCommand: ""
     plan: free
     region: oregon
@@ -18,4 +18,4 @@ services:
       - key: DB_PATH
         value: /db
       - key: PORT
-        value: null
+        value: "5001"
