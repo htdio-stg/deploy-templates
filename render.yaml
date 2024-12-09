@@ -1,0 +1,13 @@
+services:
+  - name: default
+    type: web
+    env: docker
+    runtime: image
+    image:
+      url: ghcr.io/dagu-org/dagu:latest
+    startCommand: ""
+    plan: free
+    region: oregon
+    envVars:
+      - key: PORT
+        value: "8080"
