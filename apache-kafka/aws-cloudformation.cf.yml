@@ -50,13 +50,13 @@ Resources:
           PortMappings: []
           Environment:
             - name: MYSQL_ROOT_PASSWORD
-              value: ${DB_PASSWORD}
+              value: SUPER_PASS1
             - name: MYSQL_USER
-              value: ${DB_USERNAME}
+              value: The_nice_db_username
             - name: MYSQL_PASSWORD
-              value: ${DB_PASSWORD}
+              value: SUPER_PASS1
             - name: MYSQL_DATABASE
-              value: ${DB_DATABASE}
+              value: pierogi
           LogConfiguration:
             LogDriver: awslogs
             Options:

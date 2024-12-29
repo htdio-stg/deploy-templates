@@ -10,13 +10,13 @@ services:
     region: oregon
     envVars:
       - key: MYSQL_ROOT_PASSWORD
-        value: ${DB_PASSWORD}
+        value: SUPER_PASS1
       - key: MYSQL_USER
-        value: ${DB_USERNAME}
+        value: The_nice_db_username
       - key: MYSQL_PASSWORD
-        value: ${DB_PASSWORD}
+        value: SUPER_PASS1
       - key: MYSQL_DATABASE
-        value: ${DB_DATABASE}
+        value: pierogi
     disk:
       name: db-var-lib-mysql
       mountPath: /var/lib/mysql
