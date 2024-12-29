@@ -45,23 +45,28 @@ Resources:
       ExecutionRoleArn: !Ref ExecutionRole
       ContainerDefinitions:
         - Name: db
-          Image: docker.io/library/redis:latest
+          Image: docker.io/library/mariadb:11.2
           ReadonlyRootFilesystem: false
-          PortMappings:
-            - ContainerPort: 6379
+          PortMappings: []
           Environment:
             - name: MYSQL_ROOT_PASSWORD
-              value: ""
-            - name: MARIADB_AUTO_UPGRADE
-              value: "1"
-            - name: MARIADB_DISABLE_UPGRADE_BACKUP
-              value: "1"
+              value: ${DB_PASSWORD}
+            - name: MYSQL_USER
+              value: ${DB_USERNAME}
+            - name: MYSQL_PASSWORD
+              value: ${DB_PASSWORD}
+            - name: MYSQL_DATABASE
+              value: ${DB_DATABASE}
           LogConfiguration:
             LogDriver: awslogs
             Options:
               awslogs-region: !Ref AWS::Region
               awslogs-group: !Ref LogGroupdb
               awslogs-stream-prefix: ecs
+          Command:
+            - mariadbd
+            - --character-set-server=utf8mb4
+            - --collation-server=utf8mb4_bin
   ContainerSecurityGroupdb:
     Type: AWS::EC2::SecurityGroup
     Properties:
@@ -88,16 +93,16 @@ Resources:
             - !Ref SubnetB
           SecurityGroups:
             - !Ref ContainerSecurityGroupdb
-  LogGroupweb:
+  LogGroupapp:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Join ['', [/ecs/, !Ref ServiceName, TaskDefinitionweb]]
-  TaskDefinitionweb:
+      LogGroupName: !Join ['', [/ecs/, !Ref ServiceName, TaskDefinitionapp]]
+  TaskDefinitionapp:
     Type: AWS::ECS::TaskDefinition
     DependsOn:
-      - LogGroupweb
+      - LogGroupapp
     Properties:
-      Family: !Join ['', [!Ref ServiceName, TaskDefinitionweb]]
+      Family: !Join ['', [!Ref ServiceName, TaskDefinitionapp]]
       NetworkMode: awsvpc
       RequiresCompatibilities:
         - FARGATE
@@ -105,53 +110,34 @@ Resources:
       Memory: 1GB
       ExecutionRoleArn: !Ref ExecutionRole
       ContainerDefinitions:
-        - Name: web
-          Image: docker.io/library/nginx:alpine
+        - Name: app
+          Image: docker.io/linkace/linkace:simple
           ReadonlyRootFilesystem: false
           PortMappings:
             - ContainerPort: 80
-            - ContainerPort: 443
-          Environment:
-            - name: MARIADB_ROOT_PASSWORD
-              value: ganzgeheim
-            - name: MARIADB_PASSWORD
-              value: geheim
-            - name: MARIADB_USER
-              value: testuser
-            - name: MARIADB_DATABASE
-              value: testdb
+          Environment: []
           LogConfiguration:
             LogDriver: awslogs
             Options:
               awslogs-region: !Ref AWS::Region
-              awslogs-group: !Ref LogGroupweb
+              awslogs-group: !Ref LogGroupapp
               awslogs-stream-prefix: ecs
-          Command:
-            - /bin/bash
-            - -c
-            - '"whoami'
-            - "&&"
-            - ls
-            - /
-            - ls
-            - -al
-            - /var/"
-  ContainerSecurityGroupweb:
+  ContainerSecurityGroupapp:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: !Join ['', [web, ContainerSecurityGroup]]
+      GroupDescription: !Join ['', [app, ContainerSecurityGroup]]
       VpcId: !Ref VPC
       SecurityGroupIngress:
         IpProtocol: tcp
         FromPort: 0
         ToPort: 65535
         CidrIp: 0.0.0.0/0
-  Serviceweb:
+  Serviceapp:
     Type: AWS::ECS::Service
     Properties:
-      ServiceName: web
+      ServiceName: app
       Cluster: !Ref Cluster
-      TaskDefinition: !Ref TaskDefinitionweb
+      TaskDefinition: !Ref TaskDefinitionapp
       DesiredCount: 1
       LaunchType: FARGATE
       NetworkConfiguration:
@@ -161,4 +147,4 @@ Resources:
             - !Ref SubnetA
             - !Ref SubnetB
           SecurityGroups:
-            - !Ref ContainerSecurityGroupweb
+            - !Ref ContainerSecurityGroupapp
