@@ -1,48 +1,39 @@
 services:
   - name: db
-    type: web
+    type: pserv
     env: docker
     runtime: image
     image:
-      url: docker.io/library/redis:latest
-    startCommand: ""
+      url: docker.io/library/mariadb:11.2
+    startCommand: mariadbd --character-set-server=utf8mb4 --collation-server=utf8mb4_bin
     plan: starter
     region: oregon
     envVars:
       - key: MYSQL_ROOT_PASSWORD
-        value: ""
-      - key: MARIADB_AUTO_UPGRADE
-        value: "1"
-      - key: MARIADB_DISABLE_UPGRADE_BACKUP
-        value: "1"
-      - key: PORT
-        value: "6379"
+        value: ${DB_PASSWORD}
+      - key: MYSQL_USER
+        value: ${DB_USERNAME}
+      - key: MYSQL_PASSWORD
+        value: ${DB_PASSWORD}
+      - key: MYSQL_DATABASE
+        value: ${DB_DATABASE}
     disk:
-      name: db-data
-      mountPath: /data
+      name: db-var-lib-mysql
+      mountPath: /var/lib/mysql
       sizeGB: 10
-  - name: web
+  - name: app
     type: web
     env: docker
     runtime: image
     image:
-      url: docker.io/library/nginx:alpine
-    startCommand: |
-      /bin/bash -c "whoami && ls / ls -al /var/"
+      url: docker.io/linkace/linkace:simple
+    startCommand: ""
     plan: starter
     region: oregon
     envVars:
-      - key: MARIADB_ROOT_PASSWORD
-        value: ganzgeheim
-      - key: MARIADB_PASSWORD
-        value: geheim
-      - key: MARIADB_USER
-        value: testuser
-      - key: MARIADB_DATABASE
-        value: testdb
       - key: PORT
         value: "80"
     disk:
-      name: web-var-www-html
-      mountPath: /var/www/html
+      name: app-app-storage-app-backups
+      mountPath: /app/storage/app/backups
       sizeGB: 10
