@@ -6,6 +6,7 @@ spec:
       engine: MYSQL
       version: "8"
       production: true
+      cluster_name: db
   services:
     - name: app
       image:
