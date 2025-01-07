@@ -27,16 +27,16 @@ Resources:
             Action: sts:AssumeRole
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
-  LogGroupnginx:
+  LogGroupdefault:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Join ['', [/ecs/, !Ref ServiceName, TaskDefinitionnginx]]
-  TaskDefinitionnginx:
+      LogGroupName: !Join ['', [/ecs/, !Ref ServiceName, TaskDefinitiondefault]]
+  TaskDefinitiondefault:
     Type: AWS::ECS::TaskDefinition
     DependsOn:
-      - LogGroupnginx
+      - LogGroupdefault
     Properties:
-      Family: !Join ['', [!Ref ServiceName, TaskDefinitionnginx]]
+      Family: !Join ['', [!Ref ServiceName, TaskDefinitiondefault]]
       NetworkMode: awsvpc
       RequiresCompatibilities:
         - FARGATE
@@ -44,8 +44,8 @@ Resources:
       Memory: 1GB
       ExecutionRoleArn: !Ref ExecutionRole
       ContainerDefinitions:
-        - Name: nginx
-          Image: docker.io/library/nginx:1-alpine
+        - Name: default
+          Image: docker.io/library/nginx:latest
           ReadonlyRootFilesystem: false
           PortMappings:
             - ContainerPort: 80
@@ -54,24 +54,24 @@ Resources:
             LogDriver: awslogs
             Options:
               awslogs-region: !Ref AWS::Region
-              awslogs-group: !Ref LogGroupnginx
+              awslogs-group: !Ref LogGroupdefault
               awslogs-stream-prefix: ecs
-  ContainerSecurityGroupnginx:
+  ContainerSecurityGroupdefault:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: !Join ['', [nginx, ContainerSecurityGroup]]
+      GroupDescription: !Join ['', [default, ContainerSecurityGroup]]
       VpcId: !Ref VPC
       SecurityGroupIngress:
         IpProtocol: tcp
         FromPort: 0
         ToPort: 65535
         CidrIp: 0.0.0.0/0
-  Servicenginx:
+  Servicedefault:
     Type: AWS::ECS::Service
     Properties:
-      ServiceName: nginx
+      ServiceName: default
       Cluster: !Ref Cluster
-      TaskDefinition: !Ref TaskDefinitionnginx
+      TaskDefinition: !Ref TaskDefinitiondefault
       DesiredCount: 1
       LaunchType: FARGATE
       NetworkConfiguration:
@@ -81,4 +81,4 @@ Resources:
             - !Ref SubnetA
             - !Ref SubnetB
           SecurityGroups:
-            - !Ref ContainerSecurityGroupnginx
+            - !Ref ContainerSecurityGroupdefault
