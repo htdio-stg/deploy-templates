@@ -2,12 +2,12 @@ spec:
   name: deploystack
   region: nyc
   services:
-    - name: default
+    - name: nginx
       image:
         registry_type: DOCKER_HUB
         registry: library
         repository: nginx
-        tag: latest
+        tag: 1-alpine
       instance_count: 1
       instance_size_slug: basic-xxs
       run_command: ""
