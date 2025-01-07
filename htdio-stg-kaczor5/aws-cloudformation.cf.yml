@@ -1,5 +1,5 @@
 AWSTemplateFormatVersion: 2010-09-09
-Description: Deplo.my CFN template translated from Docker compose
+Description: DeployStack CFN template translated from Docker compose
 Parameters:
   VPC:
     Type: AWS::EC2::VPC::Id
@@ -27,67 +27,51 @@ Resources:
             Action: sts:AssumeRole
       ManagedPolicyArns:
         - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
-  TaskRole:
-    Type: AWS::IAM::Role
-    Properties:
-      RoleName: !Join ['', [!Ref ServiceName, TaskRole]]
-      AssumeRolePolicyDocument:
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service: ecs-tasks.amazonaws.com
-            Action: sts:AssumeRole
-  LogGroupdb:
+  LogGroupdefault:
     Type: AWS::Logs::LogGroup
     Properties:
-      LogGroupName: !Join ['', [/ecs/, !Ref ServiceName, TaskDefinitiondb]]
-  TaskDefinitiondb:
+      LogGroupName: !Join ['', [/ecs/, !Ref ServiceName, TaskDefinitiondefault]]
+  TaskDefinitiondefault:
     Type: AWS::ECS::TaskDefinition
-    DependsOn: LogGroupdb
+    DependsOn:
+      - LogGroupdefault
     Properties:
-      Family: !Join ['', [!Ref ServiceName, TaskDefinitiondb]]
+      Family: !Join ['', [!Ref ServiceName, TaskDefinitiondefault]]
       NetworkMode: awsvpc
       RequiresCompatibilities:
         - FARGATE
       Cpu: 512
       Memory: 1GB
       ExecutionRoleArn: !Ref ExecutionRole
-      TaskRoleArn: !Ref TaskRole
       ContainerDefinitions:
-        - Name: db
-          Command: []
-          Image: docker.io/redis:latest
+        - Name: default
+          Image: docker.io/library/nginx:latest
+          ReadonlyRootFilesystem: false
           PortMappings:
-            - ContainerPort: 6379
-          Environment:
-            - name: MYSQL_ROOT_PASSWORD
-              value: ""
-            - name: MARIADB_AUTO_UPGRADE
-              value: "1"
-            - name: MARIADB_DISABLE_UPGRADE_BACKUP
-              value: "1"
+            - ContainerPort: 80
+          Environment: []
           LogConfiguration:
             LogDriver: awslogs
             Options:
               awslogs-region: !Ref AWS::Region
-              awslogs-group: !Ref LogGroupdb
+              awslogs-group: !Ref LogGroupdefault
               awslogs-stream-prefix: ecs
-  ContainerSecurityGroupdb:
+  ContainerSecurityGroupdefault:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: !Join ['', [db, ContainerSecurityGroup]]
+      GroupDescription: !Join ['', [default, ContainerSecurityGroup]]
       VpcId: !Ref VPC
       SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: 6379
-          ToPort: 6379
-          CidrIp: 0.0.0.0/0
-  Servicedb:
+        IpProtocol: tcp
+        FromPort: 0
+        ToPort: 65535
+        CidrIp: 0.0.0.0/0
+  Servicedefault:
     Type: AWS::ECS::Service
     Properties:
-      ServiceName: db
+      ServiceName: default
       Cluster: !Ref Cluster
-      TaskDefinition: !Ref TaskDefinitiondb
+      TaskDefinition: !Ref TaskDefinitiondefault
       DesiredCount: 1
       LaunchType: FARGATE
       NetworkConfiguration:
@@ -97,82 +81,4 @@ Resources:
             - !Ref SubnetA
             - !Ref SubnetB
           SecurityGroups:
-            - !Ref ContainerSecurityGroupdb
-  LogGroupweb:
-    Type: AWS::Logs::LogGroup
-    Properties:
-      LogGroupName: !Join ['', [/ecs/, !Ref ServiceName, TaskDefinitionweb]]
-  TaskDefinitionweb:
-    Type: AWS::ECS::TaskDefinition
-    DependsOn: LogGroupweb
-    Properties:
-      Family: !Join ['', [!Ref ServiceName, TaskDefinitionweb]]
-      NetworkMode: awsvpc
-      RequiresCompatibilities:
-        - FARGATE
-      Cpu: 512
-      Memory: 1GB
-      ExecutionRoleArn: !Ref ExecutionRole
-      TaskRoleArn: !Ref TaskRole
-      ContainerDefinitions:
-        - Name: web
-          Command:
-            - /bin/bash
-            - -c
-            - '"whoami'
-            - "&&"
-            - ls
-            - /
-            - ls
-            - -al
-            - |
-              /var/"
-          Image: docker.io/nginx:alpine
-          PortMappings:
-            - ContainerPort: 8080
-            - ContainerPort: 8081
-          Environment:
-            - name: MARIADB_ROOT_PASSWORD
-              value: ganzgeheim
-            - name: MARIADB_PASSWORD
-              value: geheim
-            - name: MARIADB_USER
-              value: testuser
-            - name: MARIADB_DATABASE
-              value: testdb
-          LogConfiguration:
-            LogDriver: awslogs
-            Options:
-              awslogs-region: !Ref AWS::Region
-              awslogs-group: !Ref LogGroupweb
-              awslogs-stream-prefix: ecs
-  ContainerSecurityGroupweb:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: !Join ['', [web, ContainerSecurityGroup]]
-      VpcId: !Ref VPC
-      SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: 8080
-          ToPort: 8080
-          CidrIp: 0.0.0.0/0
-        - IpProtocol: tcp
-          FromPort: 8081
-          ToPort: 8081
-          CidrIp: 0.0.0.0/0
-  Serviceweb:
-    Type: AWS::ECS::Service
-    Properties:
-      ServiceName: web
-      Cluster: !Ref Cluster
-      TaskDefinition: !Ref TaskDefinitionweb
-      DesiredCount: 1
-      LaunchType: FARGATE
-      NetworkConfiguration:
-        AwsvpcConfiguration:
-          AssignPublicIp: ENABLED
-          Subnets:
-            - !Ref SubnetA
-            - !Ref SubnetB
-          SecurityGroups:
-            - !Ref ContainerSecurityGroupweb
+            - !Ref ContainerSecurityGroupdefault
