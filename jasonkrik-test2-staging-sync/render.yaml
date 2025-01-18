@@ -4,14 +4,14 @@ services:
     env: docker
     runtime: image
     image:
-      url: docker.io/library/nginx:latest
+      url: ghcr.io/dagu-org/dagu:latest
     startCommand: ""
     plan: starter
     region: oregon
     envVars:
       - key: PORT
-        value: "80"
+        value: "8080"
     disk:
-      name: default-usr-share-nginx-html
-      mountPath: /usr/share/nginx/html
+      name: default-home-dagu--config-dagu
+      mountPath: /home/dagu/.config/dagu
       sizeGB: 10

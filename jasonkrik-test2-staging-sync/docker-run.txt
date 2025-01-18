@@ -1,1 +1,1 @@
-docker run -it --rm -d -p 8080:80 --name web -v ~/site-content:/usr/share/nginx/html nginx
+docker run --rm -p 8080:8080 -v $HOME/.config/dagu:/home/dagu/.config/dagu -v $HOME/.config/dagu/.local/share:/home/dagu/.local/share ghcr.io/dagu-org/dagu:latest

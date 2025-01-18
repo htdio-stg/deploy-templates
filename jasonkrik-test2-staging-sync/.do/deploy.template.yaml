@@ -4,14 +4,14 @@ spec:
   services:
     - name: default
       image:
-        registry_type: DOCKER_HUB
-        registry: library
-        repository: nginx
+        registry_type: GITHUB
+        registry: ghcr.io
+        repository: dagu-org/dagu
         tag: latest
       instance_count: 1
       instance_size_slug: basic-xxs
       run_command: ""
       envs: []
-      http_port: 80
+      http_port: 8080
       routes:
         - path: /
