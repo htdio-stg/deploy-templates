@@ -45,10 +45,10 @@ Resources:
       ExecutionRoleArn: !Ref ExecutionRole
       ContainerDefinitions:
         - Name: default
-          Image: ghcr.io/dagu-org/dagu:latest
+          Image: docker.io/library/nginx:latest
           ReadonlyRootFilesystem: false
           PortMappings:
-            - ContainerPort: 8080
+            - ContainerPort: 80
           Environment: []
           LogConfiguration:
             LogDriver: awslogs
