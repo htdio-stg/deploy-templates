@@ -45,11 +45,13 @@ Resources:
       ExecutionRoleArn: !Ref ExecutionRole
       ContainerDefinitions:
         - Name: default
-          Image: docker.io/library/nginx:another22
+          Image: docker.io/library/nginx:main
           ReadonlyRootFilesystem: false
           PortMappings:
             - ContainerPort: 80
-          Environment: []
+          Environment:
+            - name: REDIS_NAMESPACE
+              value: mainn2
           LogConfiguration:
             LogDriver: awslogs
             Options:
