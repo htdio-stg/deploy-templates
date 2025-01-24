@@ -4,7 +4,7 @@ services:
     env: docker
     runtime: image
     image:
-      url: docker.io/library/nginx:another22
+      url: docker.io/library/nginx:another21
     startCommand: ""
     plan: starter
     region: oregon
