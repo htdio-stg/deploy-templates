@@ -7,13 +7,15 @@ spec:
         registry_type: DOCKER_HUB
         registry: library
         repository: nginx
-        tag: main
+        tag: mainX
       instance_count: 1
       instance_size_slug: basic-xxs
       run_command: ""
       envs:
         - key: REDIS_NAMESPACE
-          value: mainn2
+          value: mainn3
+        - key: METHOD
+          value: https
       http_port: 80
       routes:
         - path: /

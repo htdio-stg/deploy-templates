@@ -4,13 +4,15 @@ services:
     env: docker
     runtime: image
     image:
-      url: docker.io/library/nginx:main
+      url: docker.io/library/nginx:mainX
     startCommand: ""
     plan: starter
     region: oregon
     envVars:
       - key: REDIS_NAMESPACE
-        value: mainn2
+        value: mainn3
+      - key: METHOD
+        value: https
       - key: PORT
         value: "80"
     disk:
