@@ -45,7 +45,7 @@ Resources:
       ExecutionRoleArn: !Ref ExecutionRole
       ContainerDefinitions:
         - Name: default
-          Image: docker.io/library/nginx:another4
+          Image: docker.io/library/nginx:anotherY
           ReadonlyRootFilesystem: false
           PortMappings:
             - ContainerPort: 80

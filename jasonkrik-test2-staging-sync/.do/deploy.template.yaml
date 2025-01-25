@@ -7,7 +7,7 @@ spec:
         registry_type: DOCKER_HUB
         registry: library
         repository: nginx
-        tag: another4
+        tag: anotherY
       instance_count: 1
       instance_size_slug: basic-xxs
       run_command: ""
