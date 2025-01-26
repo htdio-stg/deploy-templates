@@ -13,7 +13,7 @@ spec:
       run_command: ""
       envs:
         - key: STORAGE_TYPE
-          value: hetzner2
+          value: s3_is_expensive
       http_port: 80
       routes:
         - path: /
