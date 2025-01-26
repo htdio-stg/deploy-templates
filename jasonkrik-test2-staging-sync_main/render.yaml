@@ -9,8 +9,6 @@ services:
     plan: starter
     region: oregon
     envVars:
-      - key: PROTOCOL
-        value: some-nice-value
       - key: PORT
         value: "80"
     disk:

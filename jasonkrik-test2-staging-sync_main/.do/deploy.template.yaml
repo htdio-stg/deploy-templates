@@ -11,9 +11,7 @@ spec:
       instance_count: 1
       instance_size_slug: basic-xxs
       run_command: ""
-      envs:
-        - key: PROTOCOL
-          value: some-nice-value
+      envs: []
       http_port: 80
       routes:
         - path: /

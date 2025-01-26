@@ -49,9 +49,7 @@ Resources:
           ReadonlyRootFilesystem: false
           PortMappings:
             - ContainerPort: 80
-          Environment:
-            - name: PROTOCOL
-              value: some-nice-value
+          Environment: []
           LogConfiguration:
             LogDriver: awslogs
             Options:
