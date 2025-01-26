@@ -11,7 +11,9 @@ spec:
       instance_count: 1
       instance_size_slug: basic-xxs
       run_command: ""
-      envs: []
+      envs:
+        - key: PROTOCOL
+          value: oni3
       http_port: 80
       routes:
         - path: /

@@ -9,6 +9,8 @@ services:
     plan: starter
     region: oregon
     envVars:
+      - key: PROTOCOL
+        value: oni3
       - key: PORT
         value: "80"
     disk:

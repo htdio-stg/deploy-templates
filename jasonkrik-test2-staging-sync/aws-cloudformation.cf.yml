@@ -49,7 +49,9 @@ Resources:
           ReadonlyRootFilesystem: false
           PortMappings:
             - ContainerPort: 80
-          Environment: []
+          Environment:
+            - name: PROTOCOL
+              value: oni3
           LogConfiguration:
             LogDriver: awslogs
             Options:
