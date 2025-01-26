@@ -13,7 +13,7 @@ spec:
       run_command: ""
       envs:
         - key: PROTOCOL
-          value: oni3
+          value: some-nice-value
       http_port: 80
       routes:
         - path: /

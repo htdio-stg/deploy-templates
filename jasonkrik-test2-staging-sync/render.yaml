@@ -10,7 +10,7 @@ services:
     region: oregon
     envVars:
       - key: PROTOCOL
-        value: oni3
+        value: some-nice-value
       - key: PORT
         value: "80"
     disk:

@@ -51,7 +51,7 @@ Resources:
             - ContainerPort: 80
           Environment:
             - name: PROTOCOL
-              value: oni3
+              value: some-nice-value
           LogConfiguration:
             LogDriver: awslogs
             Options:
