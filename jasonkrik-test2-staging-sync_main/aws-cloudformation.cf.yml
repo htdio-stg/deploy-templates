@@ -45,11 +45,13 @@ Resources:
       ExecutionRoleArn: !Ref ExecutionRole
       ContainerDefinitions:
         - Name: nginx
-          Image: docker.io/library/nginx:1-alpine
+          Image: docker.io/library/nginx:main
           ReadonlyRootFilesystem: false
           PortMappings:
             - ContainerPort: 80
-          Environment: []
+          Environment:
+            - name: STORAGE_TYPE
+              value: hetzner2
           LogConfiguration:
             LogDriver: awslogs
             Options:
