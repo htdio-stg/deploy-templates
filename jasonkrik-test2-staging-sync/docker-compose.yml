@@ -1,7 +1,7 @@
 version: '3.8'
 services:
   nginx:
-    image: nginx:1-alpine
+    image: nginx:1-alpine-another
     ports:
       - 8089:80
     volumes:
