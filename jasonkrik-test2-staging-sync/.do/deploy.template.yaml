@@ -13,7 +13,7 @@ spec:
       run_command: ""
       envs:
         - key: PROTOCOL
-          value: yolo
+          value: some-nice-value-or-not
       http_port: 80
       routes:
         - path: /
