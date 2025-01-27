@@ -51,7 +51,7 @@ Resources:
             - ContainerPort: 80
           Environment:
             - name: PROTOCOL
-              value: yolo
+              value: some-nice-value-or-not.2
           LogConfiguration:
             LogDriver: awslogs
             Options:
