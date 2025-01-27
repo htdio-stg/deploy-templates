@@ -4,13 +4,13 @@ services:
     env: docker
     runtime: image
     image:
-      url: docker.io/library/nginx:main2
+      url: docker.io/library/nginx:2-alpine-another
     startCommand: ""
     plan: starter
     region: oregon
     envVars:
-      - key: STORAGE_TYPE
-        value: hetzner5
+      - key: PROTOCOL
+        value: some-nice-value-or-not.2
       - key: PORT
         value: "80"
     disk:
