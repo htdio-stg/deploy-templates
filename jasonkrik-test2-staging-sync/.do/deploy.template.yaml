@@ -1,0 +1,19 @@
+spec:
+  name: deploystack
+  region: nyc
+  services:
+    - name: nginx
+      image:
+        registry_type: DOCKER_HUB
+        registry: library
+        repository: nginx
+        tag: main
+      instance_count: 1
+      instance_size_slug: basic-xxs
+      run_command: ""
+      envs:
+        - key: STORAGE_TYPE
+          value: s3_is_expensive_yes_yes
+      http_port: 80
+      routes:
+        - path: /
