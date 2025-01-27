@@ -1,10 +1,10 @@
 version: '3.8'
 services:
   nginx:
-    image: nginx:main
+    image: nginx:1-alpine-another
     ports:
       - 8089:80
     volumes:
       - ./html5up-stellar/:/usr/share/nginx/html
     environment:
-      - STORAGE_TYPE=${THE_STORAGE:-hetzner5}
+      - PROTOCOL=${SOME_OTHER:-yolo}

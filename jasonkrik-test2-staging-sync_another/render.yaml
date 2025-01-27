@@ -4,13 +4,13 @@ services:
     env: docker
     runtime: image
     image:
-      url: docker.io/library/nginx:main
+      url: docker.io/library/nginx:1-alpine-another
     startCommand: ""
     plan: starter
     region: oregon
     envVars:
-      - key: STORAGE_TYPE
-        value: s3_is_expensive_yes
+      - key: PROTOCOL
+        value: yolo
       - key: PORT
         value: "80"
     disk:
