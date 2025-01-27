@@ -6,9 +6,9 @@
 
 | Cloud Provider | Deploy Button |
 |---------------|---------------|
-| AWS | <a href="https://preview.3dcxy8cjkw-deploy-my.pages.dev/deploy/jasonkrik-test2-staging-sync?provider=aws&language=cfn"><img src="https://github.com/htdio-stg/deploy-templates/blob/main/.assets/img/aws.svg" height="38"></a> |
-| DigitalOcean | <a href="https://preview.3dcxy8cjkw-deploy-my.pages.dev/deploy/jasonkrik-test2-staging-sync?provider=do&language=dop"><img src="https://github.com/htdio-stg/deploy-templates/blob/main/.assets/img/do.svg" height="38"></a> |
-| Render | <a href="https://preview.3dcxy8cjkw-deploy-my.pages.dev/deploy/jasonkrik-test2-staging-sync?provider=rnd&language=rnd"><img src="https://github.com/htdio-stg/deploy-templates/blob/main/.assets/img/rnd.svg" height="38"></a> |
+| AWS | <a href="https://preview.3dcxy8cjkw-deploy-my.pages.dev/deploy/jasonkrik-test2-staging-sync?branch=jasonkrik-test2-staging-sync_main22&provider=aws&language=cfn"><img src="https://github.com/htdio-stg/deploy-templates/blob/main/.assets/img/aws.svg" height="38"></a> |
+| DigitalOcean | <a href="https://preview.3dcxy8cjkw-deploy-my.pages.dev/deploy/jasonkrik-test2-staging-sync?branch=jasonkrik-test2-staging-sync_main22&provider=do&language=dop"><img src="https://github.com/htdio-stg/deploy-templates/blob/main/.assets/img/do.svg" height="38"></a> |
+| Render | <a href="https://preview.3dcxy8cjkw-deploy-my.pages.dev/deploy/jasonkrik-test2-staging-sync?branch=jasonkrik-test2-staging-sync_main22&provider=rnd&language=rnd"><img src="https://github.com/htdio-stg/deploy-templates/blob/main/.assets/img/rnd.svg" height="38"></a> |
 
 ## 📦 What's Inside
 
