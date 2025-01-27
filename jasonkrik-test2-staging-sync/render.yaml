@@ -10,7 +10,7 @@ services:
     region: oregon
     envVars:
       - key: STORAGE_TYPE
-        value: hetzner5
+        value: s3_is_expensive_yes_yes
       - key: PORT
         value: "80"
     disk:
