@@ -51,7 +51,7 @@ Resources:
             - ContainerPort: 80
           Environment:
             - name: STORAGE_TYPE
-              value: s3_is_expensive_yes
+              value: s3_is_expensive_yes_yes
           LogConfiguration:
             LogDriver: awslogs
             Options:

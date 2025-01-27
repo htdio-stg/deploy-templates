@@ -13,7 +13,7 @@ spec:
       run_command: ""
       envs:
         - key: STORAGE_TYPE
-          value: s3_is_expensive_yes
+          value: s3_is_expensive_yes_yes
       http_port: 80
       routes:
         - path: /
