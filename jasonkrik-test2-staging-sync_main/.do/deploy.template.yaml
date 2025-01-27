@@ -7,13 +7,13 @@ spec:
         registry_type: DOCKER_HUB
         registry: library
         repository: nginx
-        tag: 1-alpine-another
+        tag: main
       instance_count: 1
       instance_size_slug: basic-xxs
       run_command: ""
       envs:
-        - key: PROTOCOL
-          value: some-nice-value-or-not.2
+        - key: STORAGE_TYPE
+          value: s3_is_expensive_yes
       http_port: 80
       routes:
         - path: /
