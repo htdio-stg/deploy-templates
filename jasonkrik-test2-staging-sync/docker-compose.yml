@@ -1,7 +1,7 @@
 version: '3.8'
 services:
   nginx:
-    image: nginx:main
+    image: nginx:main2
     ports:
       - 8089:80
     volumes:
