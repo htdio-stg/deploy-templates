@@ -1,0 +1,1 @@
+docker run -d nginx:latest -p 80:80
