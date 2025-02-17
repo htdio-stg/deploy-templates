@@ -5,14 +5,11 @@ services:
     runtime: image
     image:
       url: docker.io/linkace/linkace:latest
-    plan: starter
-    region: oregon
     envVars:
       - key: PORT
-        value: "8080"  # Changed from 80 to avoid privileged port
-    ports:
-      - port: 80
-        internal_port: 8080  # Map external 80 to internal 8080
+        value: "8080"
+    plan: starter
+    region: oregon
     disk:
       name: app-app-storage-app-backups
       mountPath: /app/storage/app/backups
