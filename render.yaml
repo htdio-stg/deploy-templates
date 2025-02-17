@@ -4,8 +4,7 @@ services:
     env: docker
     runtime: image
     image:
-      url: docker.io/linkace/linkace:latest
-    startCommand: "chown -R www-data:www-data /usr/bin/caddy && chmod +x /usr/bin/caddy && supervisord"
+      url: docker.io/linkace/linkace:simple  # Changed from :latest to :simple
     envVars:
       - key: PORT
         value: "8080"
