@@ -26,7 +26,7 @@ services:
     env: docker
     runtime: image
     image:
-      url: docker.io/lasim/linkace:v3
+      url: docker.io/lasim/linkace:v4
     envVars:
       - key: PORT
         value: "8080"
