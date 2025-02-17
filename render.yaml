@@ -1,19 +1,17 @@
 services:
-  - name: nginx
+  - name: app
     type: web
     env: docker
     runtime: image
     image:
-      url: docker.io/library/nginx:2-alpine-another
-    startCommand: ""
+      url: docker.io/linkace/linkace:latest
+    startCommand: caddy run --config /etc/caddy/Caddyfile
     plan: starter
     region: oregon
     envVars:
-      - key: PROTOCOL
-        value: yolo
       - key: PORT
         value: "80"
     disk:
-      name: nginx-usr-share-nginx-html
-      mountPath: /usr/share/nginx/html
+      name: app-app-storage-app-backups
+      mountPath: /app/storage/app/backups
       sizeGB: 10
