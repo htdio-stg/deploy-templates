@@ -1,4 +1,4 @@
-services:
+services: 
   - name: db
     type: pserv
     env: docker
