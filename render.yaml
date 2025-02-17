@@ -32,7 +32,15 @@ services:
         value: "8080"
       - key: HOME
         value: "/home/www-data"
-    user: www-data
+      - key: XDG_CONFIG_HOME
+        value: "/home/www-data/.config"
+      - key: XDG_DATA_HOME
+        value: "/home/www-data/.local/share"
+    startCommand: |
+      chmod +x /usr/bin/caddy && \
+      mkdir -p /home/www-data/.config/caddy /home/www-data/.local/share/caddy && \
+      chown -R www-data:www-data /home/www-data /usr/bin/caddy && \
+      supervisord
     plan: starter
     region: oregon
     disk:
