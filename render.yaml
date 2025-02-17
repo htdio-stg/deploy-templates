@@ -26,10 +26,10 @@ services:
     env: docker
     runtime: image
     image:
-      url: docker.io/lasim/linkace:v2
+      url: docker.io/lasim/linkace:v3
     envVars:
       - key: PORT
-        value: "80"
+        value: "8080"
     plan: starter
     region: oregon
     disk:
