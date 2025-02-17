@@ -29,20 +29,9 @@ services:
       url: docker.io/linkace/linkace:latest
     envVars:
       - key: PORT
-        value: "80"
-      - key: HOME
-        value: "/home/www-data"
-      - key: XDG_CONFIG_HOME
-        value: "/home/www-data/.config"
-      - key: XDG_DATA_HOME
-        value: "/home/www-data/.local/share"
-    startCommand: |
-      chmod 755 /usr/bin/caddy && \
-      chown root:root /usr/bin/caddy && \
-      mkdir -p /home/www-data/.config/caddy /home/www-data/.local/share/caddy && \
-      chown -R www-data:www-data /home/www-data && \
-      chmod -R 755 /home/www-data && \
-      supervisord
+        value: "8080"
+      - key: CADDY_PORT
+        value: "8080"
     plan: starter
     region: oregon
     disk:
