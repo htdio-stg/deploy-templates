@@ -1,0 +1,216 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: DeployStack CFN template translated from Docker compose
+Parameters:
+  VPC:
+    Type: AWS::EC2::VPC::Id
+  SubnetA:
+    Type: AWS::EC2::Subnet::Id
+  SubnetB:
+    Type: AWS::EC2::Subnet::Id
+  ServiceName:
+    Type: String
+    Default: DeployStackService
+Resources:
+  Cluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: !Join ['', [!Ref ServiceName, Cluster]]
+  ExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Join ['', [!Ref ServiceName, ExecutionRole]]
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+  LogGroupeverydocs_core:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Join ['', [/ecs/, !Ref ServiceName, TaskDefinitioneverydocs_core]]
+  TaskDefinitioneverydocs_core:
+    Type: AWS::ECS::TaskDefinition
+    DependsOn:
+      - LogGroupeverydocs_core
+    Properties:
+      Family: !Join ['', [!Ref ServiceName, TaskDefinitioneverydocs_core]]
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      Cpu: 512
+      Memory: 1GB
+      ExecutionRoleArn: !Ref ExecutionRole
+      ContainerDefinitions:
+        - Name: everydocs_core
+          Image: docker.io/jonashellmann/everydocs:latest
+          ReadonlyRootFilesystem: false
+          PortMappings:
+            - ContainerPort: 5678
+          Environment:
+            - name: SECRET_KEY_BASE
+              value: ${SECRET_KEY_BASE}
+            - name: EVERYDOCS_DB_ADAPTER
+              value: mysql2
+            - name: EVERYDOCS_DB_NAME
+              value: everydocs
+            - name: EVERYDOCS_DB_USER
+              value: everydocs
+            - name: EVERYDOCS_DB_PASSWORD
+              value: PASSWORD123!
+            - name: EVERYDOCS_DB_HOST
+              value: everydocs_db
+            - name: EVERYDOCS_DB_PORT
+              value: "3306"
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-region: !Ref AWS::Region
+              awslogs-group: !Ref LogGroupeverydocs_core
+              awslogs-stream-prefix: ecs
+  ContainerSecurityGroupeverydocs_core:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Join ['', [everydocs_core, ContainerSecurityGroup]]
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        IpProtocol: tcp
+        FromPort: 0
+        ToPort: 65535
+        CidrIp: 0.0.0.0/0
+  Serviceeverydocs_core:
+    Type: AWS::ECS::Service
+    Properties:
+      ServiceName: everydocs_core
+      Cluster: !Ref Cluster
+      TaskDefinition: !Ref TaskDefinitioneverydocs_core
+      DesiredCount: 1
+      LaunchType: FARGATE
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          Subnets:
+            - !Ref SubnetA
+            - !Ref SubnetB
+          SecurityGroups:
+            - !Ref ContainerSecurityGroupeverydocs_core
+  LogGroupeverydocs_web:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Join ['', [/ecs/, !Ref ServiceName, TaskDefinitioneverydocs_web]]
+  TaskDefinitioneverydocs_web:
+    Type: AWS::ECS::TaskDefinition
+    DependsOn:
+      - LogGroupeverydocs_web
+    Properties:
+      Family: !Join ['', [!Ref ServiceName, TaskDefinitioneverydocs_web]]
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      Cpu: 512
+      Memory: 1GB
+      ExecutionRoleArn: !Ref ExecutionRole
+      ContainerDefinitions:
+        - Name: everydocs_web
+          Image: docker.io/jonashellmann/everydocs-web:latest
+          ReadonlyRootFilesystem: false
+          PortMappings:
+            - ContainerPort: 80
+            - ContainerPort: 443
+          Environment: []
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-region: !Ref AWS::Region
+              awslogs-group: !Ref LogGroupeverydocs_web
+              awslogs-stream-prefix: ecs
+  ContainerSecurityGroupeverydocs_web:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Join ['', [everydocs_web, ContainerSecurityGroup]]
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        IpProtocol: tcp
+        FromPort: 0
+        ToPort: 65535
+        CidrIp: 0.0.0.0/0
+  Serviceeverydocs_web:
+    Type: AWS::ECS::Service
+    Properties:
+      ServiceName: everydocs_web
+      Cluster: !Ref Cluster
+      TaskDefinition: !Ref TaskDefinitioneverydocs_web
+      DesiredCount: 1
+      LaunchType: FARGATE
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          Subnets:
+            - !Ref SubnetA
+            - !Ref SubnetB
+          SecurityGroups:
+            - !Ref ContainerSecurityGroupeverydocs_web
+  LogGroupeverydocs_db:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Join ['', [/ecs/, !Ref ServiceName, TaskDefinitioneverydocs_db]]
+  TaskDefinitioneverydocs_db:
+    Type: AWS::ECS::TaskDefinition
+    DependsOn:
+      - LogGroupeverydocs_db
+    Properties:
+      Family: !Join ['', [!Ref ServiceName, TaskDefinitioneverydocs_db]]
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      Cpu: 512
+      Memory: 1GB
+      ExecutionRoleArn: !Ref ExecutionRole
+      ContainerDefinitions:
+        - Name: everydocs_db
+          Image: docker.io/library/mariadb:10.7.3
+          ReadonlyRootFilesystem: false
+          PortMappings: []
+          Environment:
+            - name: MYSQL_ROOT_PASSWORD
+              value: password
+            - name: MYSQL_DATABASE
+              value: everydocs
+            - name: MYSQL_USER
+              value: everydocs
+            - name: MYSQL_PASSWORD
+              value: PASSWORD123!
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-region: !Ref AWS::Region
+              awslogs-group: !Ref LogGroupeverydocs_db
+              awslogs-stream-prefix: ecs
+  ContainerSecurityGroupeverydocs_db:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Join ['', [everydocs_db, ContainerSecurityGroup]]
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        IpProtocol: tcp
+        FromPort: 0
+        ToPort: 65535
+        CidrIp: 0.0.0.0/0
+  Serviceeverydocs_db:
+    Type: AWS::ECS::Service
+    Properties:
+      ServiceName: everydocs_db
+      Cluster: !Ref Cluster
+      TaskDefinition: !Ref TaskDefinitioneverydocs_db
+      DesiredCount: 1
+      LaunchType: FARGATE
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          Subnets:
+            - !Ref SubnetA
+            - !Ref SubnetB
+          SecurityGroups:
+            - !Ref ContainerSecurityGroupeverydocs_db
