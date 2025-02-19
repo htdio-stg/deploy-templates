@@ -4,7 +4,7 @@ spec:
   services:
     - name: webarchive
       image:
-        registry_type: GITHUB
+        registry_type: GHCR
         registry: ghcr.io
         repository: derfenix/webarchive
         tag: latest
