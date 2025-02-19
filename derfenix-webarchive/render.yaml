@@ -6,7 +6,7 @@ services:
     image:
       url: ghcr.io/derfenix/webarchive:latest
     startCommand: ""
-    plan: free
+    plan: starter
     region: oregon
     envVars:
       - key: LOGGING_DEBUG
@@ -19,3 +19,7 @@ services:
         value: /db
       - key: PORT
         value: "5001"
+    disk:
+      name: webarchive-db
+      mountPath: /db
+      sizeGB: 10

@@ -5,9 +5,9 @@ spec:
     - name: webarchive
       image:
         registry_type: GITHUB
-        repository: ghcr.io/derfenix/webarchive
+        registry: ghcr.io
+        repository: derfenix/webarchive
         tag: latest
-      http_port: 5001
       instance_count: 1
       instance_size_slug: basic-xxs
       run_command: ""
@@ -20,5 +20,6 @@ spec:
           value: "300"
         - key: DB_PATH
           value: /db
+      http_port: 5001
       routes:
         - path: /

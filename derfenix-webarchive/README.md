@@ -6,9 +6,9 @@
 
 | Cloud Provider | Deploy Button |
 |---------------|---------------|
-| AWS | <a href="http://localhost:3000/deploy/derfenix-webarchive?provider=aws&language=cfn"><img src="https://github.com/htdio-stg/deploy-templates/blob/main/.assets/img/aws.svg" height="38"></a> |
-| DigitalOcean | <a href="http://localhost:3000/deploy/derfenix-webarchive?provider=do&language=dop"><img src="https://github.com/htdio-stg/deploy-templates/blob/main/.assets/img/do.svg" height="38"></a> |
-| Render | <a href="http://localhost:3000/deploy/derfenix-webarchive?provider=rnd&language=rnd"><img src="https://github.com/htdio-stg/deploy-templates/blob/main/.assets/img/rnd.svg" height="38"></a> |
+| AWS | <a href="https://preview.3dcxy8cjkw-deploy-my.pages.dev/deploy/derfenix-webarchive?provider=aws&language=cfn"><img src="https://github.com/htdio-stg/deploy-templates/blob/main/.assets/img/aws.svg" height="38"></a> |
+| DigitalOcean | <a href="https://preview.3dcxy8cjkw-deploy-my.pages.dev/deploy/derfenix-webarchive?provider=do&language=dop"><img src="https://github.com/htdio-stg/deploy-templates/blob/main/.assets/img/do.svg" height="38"></a> |
+| Render | <a href="https://preview.3dcxy8cjkw-deploy-my.pages.dev/deploy/derfenix-webarchive?provider=rnd&language=rnd"><img src="https://github.com/htdio-stg/deploy-templates/blob/main/.assets/img/rnd.svg" height="38"></a> |
 
 ## 📦 What's Inside
 
@@ -45,7 +45,7 @@ These templates are automatically updated when changes are detected in the sourc
 
 ## 💬 Need Help?
 
-- 📚 Visit our [Documentation](https://docs.deploystack.io)
+- 📚 Visit our [Documentation](https://deploystack.io)
 - 🎯 Report issues with generated templates on [GitHub](https://github.com/deploystackio/docker-to-iac/issues)
 - 📧 Use Discord to chat with us at [https://discord.gg/UjFWwByB](https://discord.gg/UjFWwByB)
 
