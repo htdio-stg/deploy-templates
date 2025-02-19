@@ -1,0 +1,66 @@
+spec:
+  name: deploystack
+  region: nyc
+  services:
+    - name: everydocs_core
+      image:
+        registry_type: DOCKER_HUB
+        registry: jonashellmann
+        repository: everydocs
+        tag: latest
+      instance_count: 1
+      instance_size_slug: basic-xxs
+      run_command: ""
+      envs:
+        - key: SECRET_KEY_BASE
+          value: ${SECRET_KEY_BASE}
+        - key: EVERYDOCS_DB_ADAPTER
+          value: mysql2
+        - key: EVERYDOCS_DB_NAME
+          value: everydocs
+        - key: EVERYDOCS_DB_USER
+          value: everydocs
+        - key: EVERYDOCS_DB_PASSWORD
+          value: PASSWORD123!
+        - key: EVERYDOCS_DB_HOST
+          value: everydocs_db
+        - key: EVERYDOCS_DB_PORT
+          value: "3306"
+      http_port: 5678
+      routes:
+        - path: /
+    - name: everydocs_web
+      image:
+        registry_type: DOCKER_HUB
+        registry: jonashellmann
+        repository: everydocs-web
+        tag: latest
+      instance_count: 1
+      instance_size_slug: basic-xxs
+      run_command: ""
+      envs: []
+      http_port: 80
+      routes:
+        - path: /everydocs_web
+    - name: everydocs_db
+      image:
+        registry_type: DOCKER_HUB
+        registry: library
+        repository: mariadb
+        tag: 10.7.3
+      instance_count: 1
+      instance_size_slug: basic-xxs
+      run_command: ""
+      envs:
+        - key: MYSQL_ROOT_PASSWORD
+          value: password
+        - key: MYSQL_DATABASE
+          value: everydocs
+        - key: MYSQL_USER
+          value: everydocs
+        - key: MYSQL_PASSWORD
+          value: PASSWORD123!
+      health_check:
+        port: 3306
+      internal_ports:
+        - 3306
