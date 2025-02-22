@@ -1,0 +1,23 @@
+services:
+  - name: teedy-server
+    type: web
+    env: docker
+    runtime: image
+    image:
+      url: docker.io/sismics/docs:v1.10
+    startCommand: ""
+    plan: starter
+    region: oregon
+    envVars:
+      - key: DOCS_BASE_URL
+        value: https://docs.example.com
+      - key: DOCS_ADMIN_EMAIL_INIT
+        value: admin@example.com
+      - key: DOCS_ADMIN_PASSWORD_INIT
+        value: $$2a$$05$$PcMNUbJvsk7QHFSfEIDaIOjk1VI9/E7IPjTKx.jkjPxkx2EOKSoPS
+      - key: PORT
+        value: "8080"
+    disk:
+      name: teedy-server-data
+      mountPath: /data
+      sizeGB: 10
