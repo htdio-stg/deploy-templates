@@ -1,0 +1,16 @@
+spec:
+  name: deploystack
+  region: nyc
+  services:
+    - name: upsnap
+      image:
+        registry_type: GHCR
+        registry: ghcr.io
+        repository: seriousm4x/upsnap
+        tag: "4"
+      instance_count: 1
+      instance_size_slug: basic-xxs
+      run_command: ""
+      envs: []
+      routes:
+        - path: /
