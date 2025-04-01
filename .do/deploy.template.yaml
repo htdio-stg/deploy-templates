@@ -2,7 +2,22 @@ spec:
   name: deploystack
   region: nyc
   services:
-    - name: nginx
+    - name: dd-frontend
+      image:
+        registry_type: DOCKER_HUB
+        registry: library
+        repository: nginx
+        tag: latest
+      instance_count: 1
+      instance_size_slug: basic-xxs
+      run_command: ""
+      envs:
+        - key: BACKEND_URL
+          value: ${BACKEND_URL_ADDR}
+      http_port: 80
+      routes:
+        - path: /
+    - name: dd-backend
       image:
         registry_type: DOCKER_HUB
         registry: library
@@ -16,4 +31,4 @@ spec:
           value: s3_is_expensive_yes_yes
       http_port: 80
       routes:
-        - path: /
+        - path: /dd_backend
