@@ -1,10 +1,9 @@
 services:
   - name: nginx
     type: web
-    env: docker
     runtime: image
     image:
-      url: docker.io/library/nginx:main2
+      url: docker.io/library/nginx:latest
     startCommand: ""
     plan: starter
     region: oregon
