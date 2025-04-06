@@ -8,10 +8,13 @@ services:
     plan: starter
     region: oregon
     envVars:
-      - key: BACKEND_URL
-        value: ${BACKEND_URL_ADDR}
       - key: PORT
         value: "80"
+      - key: BACKEND_URL
+        fromService:
+          name: dd_backend
+          type: web
+          property: hostport
     disk:
       name: dd_frontend-usr-share-nginx-html
       mountPath: /usr/share/nginx/html
