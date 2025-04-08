@@ -13,7 +13,7 @@ spec:
       run_command: ""
       envs:
         - key: BACKEND_URL
-          value: ${BACKEND_URL_ADDR}
+          value: dd-backend
       http_port: 80
       routes:
         - path: /
