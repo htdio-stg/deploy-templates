@@ -1,34 +1,44 @@
 services:
-  - name: dd_frontend
+  - name: rsshub
     type: web
     runtime: image
     image:
-      url: docker.io/library/nginx:latest
+      url: docker.io/diygod/rsshub:latest
+    startCommand: ""
+    plan: starter
+    region: oregon
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: CACHE_TYPE
+        value: redis
+      - key: REDIS_URL
+        value: redis://redis:6379/
+      - key: PUPPETEER_WS_ENDPOINT
+        value: ws://browserless:3000
+      - key: PORT
+        value: "1200"
+  - name: browserless
+    type: web
+    runtime: image
+    image:
+      url: docker.io/browserless/chrome:latest
     startCommand: ""
     plan: starter
     region: oregon
     envVars:
       - key: PORT
-        value: "80"
-      - key: BACKEND_URL
-        fromService:
-          name: dd_backend
-          type: web
-          property: hostport
+        value: "3000"
+  - name: redis
+    type: web
+    runtime: image
+    image:
+      url: docker.io/library/redis:alpine
+    startCommand: ""
+    plan: starter
+    region: oregon
+    envVars: []
     disk:
-      name: dd_frontend-usr-share-nginx-html
-      mountPath: /usr/share/nginx/html
+      name: redis-data
+      mountPath: /data
       sizeGB: 10
-  - name: dd_backend
-    type: web
-    runtime: image
-    image:
-      url: docker.io/library/nginx:latest
-    startCommand: ""
-    plan: starter
-    region: oregon
-    envVars:
-      - key: STORAGE_TYPE
-        value: s3_is_expensive_yes_yes
-      - key: PORT
-        value: "80"
