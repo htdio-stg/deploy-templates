@@ -1,0 +1,44 @@
+services:
+  - name: postgres
+    type: pserv
+    runtime: image
+    image:
+      url: docker.io/library/postgres:16-alpine
+    startCommand: ""
+    plan: starter
+    region: oregon
+    envVars: []
+    disk:
+      name: postgres-var-lib-postgresql-data
+      mountPath: /var/lib/postgresql/data
+      sizeGB: 10
+  - name: linkwarden
+    type: web
+    runtime: image
+    image:
+      url: ghcr.io/linkwarden/linkwarden:latest
+    startCommand: ""
+    plan: starter
+    region: oregon
+    envVars:
+      - key: DATABASE_URL
+        value: postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/postgres
+      - key: PORT
+        value: "3000"
+    disk:
+      name: linkwarden-data-data
+      mountPath: /data/data
+      sizeGB: 10
+  - name: meilisearch
+    type: web
+    runtime: image
+    image:
+      url: docker.io/getmeili/meilisearch:v1.12.8
+    startCommand: ""
+    plan: starter
+    region: oregon
+    envVars: []
+    disk:
+      name: meilisearch-meili-data
+      mountPath: /meili_data
+      sizeGB: 10
