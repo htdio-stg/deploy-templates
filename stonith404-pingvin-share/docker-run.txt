@@ -1,0 +1,1 @@
+docker run -d --name pingvin-share --restart unless-stopped -p 3000:3000 -e TRUST_PROXY=false -v "./data:/opt/app/backend/data" stonith404/pingvin-share
