@@ -1,0 +1,18 @@
+services:
+  - name: default
+    type: web
+    runtime: image
+    image:
+      url: docker.io/stonith404/pingvin-share:latest
+    startCommand: ""
+    plan: starter
+    region: oregon
+    envVars:
+      - key: TRUST_PROXY
+        value: "false"
+      - key: PORT
+        value: "3000"
+    disk:
+      name: default-opt-app-backend-data
+      mountPath: /opt/app/backend/data
+      sizeGB: 10
