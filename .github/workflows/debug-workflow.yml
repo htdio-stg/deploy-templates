@@ -1,0 +1,13 @@
+name: Debug Workflow
+
+on: push
+
+jobs:
+  debug:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print debug info
+        run: |
+          echo "Workflow triggered!"
+          echo "Branch: ${{ github.ref }}"
+          echo "Repository: ${{ github.repository }}"
