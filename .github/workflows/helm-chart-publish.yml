@@ -2,17 +2,21 @@ name: Helm Chart Publish
 
 on:
   push:
+    paths:
+      - 'helm/**'
+      - '**/helm/**'
     branches-ignore:
       - 'main'
       - 'skeleton'
       - 'gh-pages'
-    paths:
-      - 'helm/**'
-      - '**/helm/**'  # This will catch helm directories in subdirectories as well
+
+permissions:
+  contents: write
 
 jobs:
   package-and-publish:
     runs-on: ubuntu-latest
+    if: ${{ !contains(github.ref, 'main') && !contains(github.ref, 'skeleton') && !contains(github.ref, 'gh-pages') }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -26,10 +30,11 @@ jobs:
       - name: Debug environment
         run: |
           echo "Current branch: ${{ env.BRANCH_NAME }}"
+          echo "GitHub ref: ${{ github.ref }}"
           echo "Files changed:"
-          git diff --name-only HEAD~1 HEAD
+          git diff --name-only HEAD~1 HEAD || echo "Cannot show diff"
           echo "Repository structure:"
-          find . -type f -name "Chart.yaml" | xargs dirname
+          find . -type f -name "Chart.yaml" | xargs dirname || echo "No Chart.yaml found"
 
       - name: Find Helm charts
         id: find_charts
