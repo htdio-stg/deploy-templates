@@ -72,10 +72,14 @@ jobs:
           # Go to gh-pages directory
           cd gh-pages
           
-          # Generate or update index.yaml
-          if [ -f "index.yaml" ]; then
+          # Check if index.yaml exists and has content
+          if [ -f "index.yaml" ] && [ -s "index.yaml" ]; then
+            echo "Updating existing index.yaml"
             helm repo index . --url https://htdio-stg.github.io/deploy-templates --merge index.yaml
           else
+            echo "Creating new index.yaml"
+            # Remove empty index.yaml if it exists
+            rm -f index.yaml
             helm repo index . --url https://htdio-stg.github.io/deploy-templates
           fi
           
