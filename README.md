@@ -9,7 +9,7 @@
 | AWS | <a href="[deploy_path_aws_cfn]"><img src="https://github.com/htdio-stg/deploy-templates/blob/main/.assets/img/aws.svg" height="38"></a> |
 | DigitalOcean | <a href="[deploy_path_do_dop]"><img src="https://github.com/htdio-stg/deploy-templates/blob/main/.assets/img/do.svg" height="38"></a> |
 | Render | <a href="[deploy_path_rnd_rnd]"><img src="https://github.com/htdio-stg/deploy-templates/blob/main/.assets/img/rnd.svg" height="38"></a> |
-| Helm | `helm install myapp https://github.com/htdio-stg/deploy-templates/tree/[helm_branch_name]/helm` |
+| Helm | `helm install [app_branch_name] https://github.com/htdio-stg/deploy-templates/tree/[app_branch_name]/helm` |
 
 ## 📦 What's Inside
 
