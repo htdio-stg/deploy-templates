@@ -10,6 +10,12 @@
 | DigitalOcean | <a href="http://localhost:3000/deploy/htdio-stg-kaczor5?provider=do&language=dop"><img src="https://github.com/htdio-stg/deploy-templates/blob/main/.assets/img/do.svg" height="38"></a> |
 | Render | <a href="http://localhost:3000/deploy/htdio-stg-kaczor5?provider=rnd&language=rnd"><img src="https://github.com/htdio-stg/deploy-templates/blob/main/.assets/img/rnd.svg" height="38"></a> |
 
+```bash
+helm repo add htdio-repo https://htdio-stg.github.io/deploy-templates/
+helm repo update
+helm install my-app htdio-repo/deploystack-app
+```
+
 ## 📦 What's Inside
 
 This directory contains the following Infrastructure as Code templates:
