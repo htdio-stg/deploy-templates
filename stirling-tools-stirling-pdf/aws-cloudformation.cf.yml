@@ -45,10 +45,10 @@ Resources:
       ExecutionRoleArn: !Ref ExecutionRole
       ContainerDefinitions:
         - Name: default
-          Image: docker.io/library/nginx:latest
+          Image: docker.io/library/activepieces:latest
           ReadonlyRootFilesystem: false
           PortMappings:
-            - ContainerPort: 80
+            - ContainerPort: 443
           Environment: []
           LogConfiguration:
             LogDriver: awslogs

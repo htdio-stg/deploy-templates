@@ -6,12 +6,12 @@ spec:
       image:
         registry_type: DOCKER_HUB
         registry: library
-        repository: nginx
+        repository: activepieces
         tag: latest
       instance_count: 1
       instance_size_slug: basic-xxs
       run_command: ""
       envs: []
-      http_port: 80
+      http_port: 443
       routes:
         - path: /
