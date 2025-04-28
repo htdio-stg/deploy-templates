@@ -10,7 +10,7 @@ services:
     enabled: true
     replicaCount: 1
     image:
-      repository: docker.io/activepieces/activepieces
+      repository: docker.io/nginx/nginx
       pullPolicy: IfNotPresent
       tag: latest
     service:
