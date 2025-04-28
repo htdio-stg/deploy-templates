@@ -10,14 +10,14 @@ services:
     enabled: true
     replicaCount: 1
     image:
-      repository: docker.io/library/activepieces
+      repository: docker.io/vvveb/vvvebcms
       pullPolicy: IfNotPresent
       tag: latest
     service:
       type: ClusterIP
       ports:
-        - port: 443
-          targetPort: 443
+        - port: 80
+          targetPort: 80
           protocol: TCP
     environment:
       regular: {}

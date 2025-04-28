@@ -5,13 +5,13 @@ spec:
     - name: default
       image:
         registry_type: DOCKER_HUB
-        registry: library
-        repository: activepieces
+        registry: vvveb
+        repository: vvvebcms
         tag: latest
       instance_count: 1
       instance_size_slug: basic-xxs
       run_command: ""
       envs: []
-      http_port: 443
+      http_port: 80
       routes:
         - path: /

@@ -45,10 +45,10 @@ Resources:
       ExecutionRoleArn: !Ref ExecutionRole
       ContainerDefinitions:
         - Name: default
-          Image: docker.io/library/activepieces:latest
+          Image: docker.io/vvveb/vvvebcms:latest
           ReadonlyRootFilesystem: false
           PortMappings:
-            - ContainerPort: 443
+            - ContainerPort: 80
           Environment: []
           LogConfiguration:
             LogDriver: awslogs
