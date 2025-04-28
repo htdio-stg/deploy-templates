@@ -8,6 +8,7 @@ on:
       - 'gh-pages'
     paths:
       - 'helm/**'
+      - '**/helm/**'  # This will catch helm directories in subdirectories as well
 
 jobs:
   package-and-publish:
@@ -22,37 +23,50 @@ jobs:
         shell: bash
         run: echo "BRANCH_NAME=$(echo ${GITHUB_REF#refs/heads/})" >> $GITHUB_ENV
 
+      - name: Debug environment
+        run: |
+          echo "Current branch: ${{ env.BRANCH_NAME }}"
+          echo "Files changed:"
+          git diff --name-only HEAD~1 HEAD
+          echo "Repository structure:"
+          find . -type f -name "Chart.yaml" | xargs dirname
+
+      - name: Find Helm charts
+        id: find_charts
+        run: |
+          CHART_DIRS=$(find . -type f -name "Chart.yaml" | xargs dirname)
+          if [ -z "$CHART_DIRS" ]; then
+            echo "No Helm charts found"
+            echo "HELM_EXISTS=false" >> $GITHUB_ENV
+          else
+            echo "Found Helm charts in: $CHART_DIRS"
+            echo "HELM_EXISTS=true" >> $GITHUB_ENV
+            echo "CHART_DIRS<<EOF" >> $GITHUB_ENV
+            echo "$CHART_DIRS" >> $GITHUB_ENV
+            echo "EOF" >> $GITHUB_ENV
+          fi
+
       - name: Set up Helm
+        if: env.HELM_EXISTS == 'true'
         uses: azure/setup-helm@v3
         with:
           version: 'latest'
 
-      - name: Check if Helm chart exists
-        id: check_helm
-        run: |
-          if [ -d "helm" ] && [ -f "helm/Chart.yaml" ]; then
-            echo "HELM_EXISTS=true" >> $GITHUB_ENV
-          else
-            echo "HELM_EXISTS=false" >> $GITHUB_ENV
-          fi
-
-      - name: Package Helm chart
+      - name: Package Helm charts
         if: env.HELM_EXISTS == 'true'
         run: |
-          # Extract chart info
-          CHART_NAME=$(grep "name:" helm/Chart.yaml | awk '{print $2}')
-          CHART_VERSION=$(grep "version:" helm/Chart.yaml | awk '{print $2}')
-          
-          # Create directory for packaged chart
           mkdir -p .charts
+          for CHART_DIR in ${{ env.CHART_DIRS }}; do
+            echo "Processing chart in $CHART_DIR"
+            CHART_NAME=$(grep "name:" $CHART_DIR/Chart.yaml | awk '{print $2}')
+            CHART_VERSION=$(grep "version:" $CHART_DIR/Chart.yaml | awk '{print $2}')
+            
+            helm package $CHART_DIR -d .charts/
+            
+            CHART_FILENAMES="$CHART_FILENAMES $CHART_NAME-$CHART_VERSION.tgz"
+          done
           
-          # Package chart
-          helm package helm/ -d .charts/
-          
-          # Store the tgz filename
-          echo "CHART_FILENAME=${CHART_NAME}-${CHART_VERSION}.tgz" >> $GITHUB_ENV
-          echo "CHART_NAME=${CHART_NAME}" >> $GITHUB_ENV
-          echo "CHART_VERSION=${CHART_VERSION}" >> $GITHUB_ENV
+          echo "CHART_FILENAMES=${CHART_FILENAMES}" >> $GITHUB_ENV
 
       - name: Checkout gh-pages branch
         if: env.HELM_EXISTS == 'true'
@@ -65,8 +79,8 @@ jobs:
       - name: Update Helm repository
         if: env.HELM_EXISTS == 'true'
         run: |
-          # Move packaged chart to gh-pages directory
-          cp .charts/${{ env.CHART_FILENAME }} gh-pages/
+          # Move packaged charts to gh-pages directory
+          cp .charts/*.tgz gh-pages/
           
           # Go to gh-pages directory
           cd gh-pages
@@ -80,7 +94,7 @@ jobs:
           
           # Add metadata annotation about source branch
           echo "" >> index.yaml
-          echo "# Chart ${{ env.CHART_NAME }}-${{ env.CHART_VERSION }} from branch: ${{ env.BRANCH_NAME }}" >> index.yaml
+          echo "# Charts updated from branch: ${{ env.BRANCH_NAME }} on $(date)" >> index.yaml
 
       - name: Commit and push to gh-pages
         if: env.HELM_EXISTS == 'true'
@@ -90,12 +104,12 @@ jobs:
           git config user.name "GitHub Actions Bot"
           git config user.email "actions@github.com"
           
-          git add index.yaml ${{ env.CHART_FILENAME }}
+          git add index.yaml *.tgz
           
           # Only commit if there are changes
           if git diff --staged --quiet; then
             echo "No changes to commit"
           else
-            git commit -m "Add Helm chart ${{ env.CHART_NAME }}-${{ env.CHART_VERSION }} from branch ${{ env.BRANCH_NAME }}"
+            git commit -m "Add Helm charts from branch ${{ env.BRANCH_NAME }}"
             git push
           fi
