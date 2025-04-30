@@ -23,12 +23,29 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Check for deleted Helm directories
+        id: check-deleted
+        run: |
+          # Get list of all deleted files in this push
+          DELETED_FILES=$(git diff --name-status HEAD^ HEAD | grep '^D' | awk '{print $2}' || echo "")
+          
+          # Check if any of the deleted files are in a Helm directory
+          if echo "$DELETED_FILES" | grep -q "/helm/"; then
+            echo "This commit contains Helm deletions, skipping publish workflow"
+            echo "SKIP_WORKFLOW=true" >> $GITHUB_ENV
+          else
+            echo "No Helm deletions detected, proceeding with publish workflow"
+            echo "SKIP_WORKFLOW=false" >> $GITHUB_ENV
+          fi
+
       - name: Set up Helm
+        if: env.SKIP_WORKFLOW != 'true'
         uses: azure/setup-helm@v3
         with:
           version: 'latest'
 
       - name: Find and package Helm charts
+        if: env.SKIP_WORKFLOW != 'true'
         run: |
           # Find all Chart.yaml files
           CHART_DIRS=$(find . -type f -name "Chart.yaml" | xargs dirname)
@@ -57,10 +74,16 @@ jobs:
               
               echo "Packaged $CHART_NAME-$CHART_VERSION.tgz from $APP_NAME"
             done
+            
+            # Check if any charts were packaged
+            if [ -z "$(ls -A .charts/)" ]; then
+              echo "No charts were packaged"
+              echo "HELM_EXISTS=false" >> $GITHUB_ENV
+            fi
           fi
 
       - name: Checkout gh-pages branch
-        if: env.HELM_EXISTS == 'true'
+        if: env.SKIP_WORKFLOW != 'true' && env.HELM_EXISTS == 'true'
         uses: actions/checkout@v3
         with:
           ref: gh-pages
@@ -70,10 +93,16 @@ jobs:
           fetch-depth: 0
 
       - name: Update Helm repository
-        if: env.HELM_EXISTS == 'true'
+        if: env.SKIP_WORKFLOW != 'true' && env.HELM_EXISTS == 'true'
         run: |
+          # Check if there are any packaged charts
+          if [ ! -d ".charts" ] || [ -z "$(ls -A .charts/)" ]; then
+            echo "No charts to publish"
+            exit 0
+          fi
+          
           # Move packaged charts to gh-pages directory
-          cp .charts/*.tgz gh-pages/
+          cp .charts/*.tgz gh-pages/ || { echo "No charts to copy"; exit 0; }
           
           # Go to gh-pages directory
           cd gh-pages
@@ -94,8 +123,14 @@ jobs:
           echo "# Charts updated from main branch on $(date)" >> index.yaml
 
       - name: Commit and push to gh-pages
-        if: env.HELM_EXISTS == 'true'
+        if: env.SKIP_WORKFLOW != 'true' && env.HELM_EXISTS == 'true'
         run: |
+          # Check if charts directory exists and has content
+          if [ ! -d ".charts" ] || [ -z "$(ls -A .charts/)" ]; then
+            echo "No charts to publish"
+            exit 0
+          fi
+          
           cd gh-pages
           
           git config user.name "GitHub Actions Bot"
@@ -106,7 +141,12 @@ jobs:
           git reset --hard origin/gh-pages
           
           # Copy the charts back (they might have been lost in the reset)
-          cp ../.charts/*.tgz .
+          if [ -f "../.charts/"*.tgz ]; then
+            cp ../.charts/*.tgz . || echo "No charts to copy"
+          else
+            echo "No charts found to copy"
+            exit 0
+          fi
           
           # Re-run indexing
           if [ -f "index.yaml" ] && [ -s "index.yaml" ]; then
@@ -120,7 +160,10 @@ jobs:
           echo "# Charts updated from main branch on $(date)" >> index.yaml
           
           # Now add files
-          git add index.yaml *.tgz
+          git add index.yaml
+          if ls *.tgz &> /dev/null; then
+            git add *.tgz
+          fi
           
           # Only commit if there are changes
           if git diff --staged --quiet; then
@@ -128,26 +171,44 @@ jobs:
           else
             git commit -m "Update Helm charts from main branch"
             
-            # Add retry logic for pushing
+            # Add retry logic for pushing with force if needed
             MAX_RETRIES=5
             RETRY_COUNT=0
             
             while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
-              # Pull with --ff-only to avoid rebase issues with staged changes
-              git pull --ff-only origin gh-pages || true
-              
+              # Try to push normally first
               if git push; then
                 echo "Successfully pushed changes"
                 break
-              else
+              elif [ $RETRY_COUNT -lt 3 ]; then
+                # First few attempts: try with pull and merge
                 RETRY_COUNT=$((RETRY_COUNT+1))
-                if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
-                  echo "Push failed, retrying in 5 seconds... (Attempt $RETRY_COUNT of $MAX_RETRIES)"
-                  sleep 5
-                else
+                echo "Push failed, retrying with merge... (Attempt $RETRY_COUNT of $MAX_RETRIES)"
+                git pull origin gh-pages --no-rebase || true
+                
+                # Try pushing again
+                if git push; then
+                  echo "Successfully pushed changes after merging"
+                  break
+                fi
+                
+                sleep 5
+              else
+                # Last attempts: try with force-push if all else fails
+                RETRY_COUNT=$((RETRY_COUNT+1))
+                echo "Push with merge failed, retrying with force-push as last resort... (Attempt $RETRY_COUNT of $MAX_RETRIES)"
+                
+                if git push --force; then
+                  echo "Successfully force-pushed changes"
+                  break
+                fi
+                
+                if [ $RETRY_COUNT -ge $MAX_RETRIES ]; then
                   echo "Failed to push after $MAX_RETRIES attempts"
                   exit 1
                 fi
+                
+                sleep 5
               fi
             done
           fi
