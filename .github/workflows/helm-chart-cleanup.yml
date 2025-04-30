@@ -76,6 +76,10 @@ jobs:
         run: |
           cd gh-pages
           
+          # Pull latest changes from remote first to avoid conflicts
+          git fetch origin gh-pages
+          git reset --hard origin/gh-pages
+          
           echo "Checking for charts to remove..."
           
           # For each deleted app, check if its chart exists in index.yaml
@@ -83,7 +87,7 @@ jobs:
             echo "Processing deleted app: $APP"
             
             # Find all chart .tgz files for this app and remove them
-            CHART_FILES=$(find . -name "${APP}-*.tgz" -o -name "${APP}_*.tgz")
+            CHART_FILES=$(find . -name "${APP}-*.tgz" -o -name "${APP}_*.tgz" || true)
             if [ -n "$CHART_FILES" ]; then
               echo "Removing chart files: $CHART_FILES"
               rm -f $CHART_FILES
@@ -97,7 +101,7 @@ jobs:
               mkdir -p temp_repo
               
               # Copy all remaining chart packages
-              find . -name "*.tgz" ! -name "${APP}-*.tgz" ! -name "${APP}_*.tgz" -exec cp {} temp_repo/ \;
+              find . -name "*.tgz" ! -name "${APP}-*.tgz" ! -name "${APP}_*.tgz" -exec cp {} temp_repo/ \; || true
               
               # Regenerate index.yaml from scratch with remaining packages
               helm repo index temp_repo --url https://htdio-stg.github.io/deploy-templates
@@ -129,15 +133,12 @@ jobs:
           git add index.yaml
           
           # Remove any deleted .tgz files from git
-          git ls-files --deleted | xargs -r git rm
+          git ls-files --deleted | xargs -r git rm || true
           
           # Only commit if there are changes
           if git diff --staged --quiet; then
             echo "No changes to commit"
           else
-            # Pull latest changes to avoid conflicts
-            git pull --rebase origin gh-pages
-            
             git commit -m "Remove charts for deleted apps: $DELETED_APPS"
             
             # Add retry logic for pushing
@@ -145,6 +146,9 @@ jobs:
             RETRY_COUNT=0
             
             while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+              # Pull with --ff-only to avoid rebase issues with staged changes
+              git pull --ff-only origin gh-pages || true
+              
               if git push; then
                 echo "Successfully pushed changes"
                 break
@@ -153,8 +157,6 @@ jobs:
                 if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
                   echo "Push failed, retrying in 5 seconds... (Attempt $RETRY_COUNT of $MAX_RETRIES)"
                   sleep 5
-                  # Pull again before retrying
-                  git pull --rebase origin gh-pages
                 else
                   echo "Failed to push after $MAX_RETRIES attempts"
                   exit 1
