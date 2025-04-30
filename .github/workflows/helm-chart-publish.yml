@@ -13,10 +13,9 @@ permissions:
 jobs:
   package-and-publish:
     runs-on: ubuntu-latest
-    # Add concurrency to prevent multiple workflows running simultaneously on the same branch
     concurrency:
       group: ${{ github.workflow }}-${{ github.ref }}
-      cancel-in-progress: true  # Changed to true to prevent conflicts
+      cancel-in-progress: true
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -26,15 +25,10 @@ jobs:
       - name: Check for deleted Helm directories
         id: check-deleted
         run: |
-          # Get list of all deleted files in this push
           DELETED_FILES=$(git diff --name-status HEAD^ HEAD | grep '^D' | awk '{print $2}' || echo "")
-          
-          # Check if any of the deleted files are in a Helm directory
           if echo "$DELETED_FILES" | grep -q "/helm/"; then
-            echo "This commit contains Helm deletions, skipping publish workflow"
             echo "SKIP_WORKFLOW=true" >> $GITHUB_ENV
           else
-            echo "No Helm deletions detected, proceeding with publish workflow"
             echo "SKIP_WORKFLOW=false" >> $GITHUB_ENV
           fi
 
@@ -51,64 +45,48 @@ jobs:
           CHANGED_FILES=$(git diff --name-only HEAD^ HEAD | grep "helm/" || echo "")
           
           if [ -z "$CHANGED_FILES" ]; then
-            echo "No Helm chart files changed in this commit"
             echo "HELM_EXISTS=false" >> $GITHUB_ENV
             exit 0
           fi
           
           # Extract unique chart directories from changed files
-          echo "Changed Helm files:"
-          echo "$CHANGED_FILES"
-          
-          # Create an array to store unique chart directories
           declare -A CHART_DIRS
           
           for FILE in $CHANGED_FILES; do
-            # Extract the app directory (assuming structure like app-name/helm/...)
             APP_NAME=$(echo $FILE | cut -d'/' -f1)
             HELM_DIR="${APP_NAME}/helm"
             
-            # Check if this is a valid helm chart directory
             if [ -f "${HELM_DIR}/Chart.yaml" ]; then
               CHART_DIRS["$HELM_DIR"]=1
+              # Store chart names in a file for later use
+              CHART_NAME=$(grep "name:" $HELM_DIR/Chart.yaml | awk '{print $2}')
+              echo "$CHART_NAME" >> changed_charts.txt
             fi
           done
           
-          # Check if we found any valid chart directories
           if [ ${#CHART_DIRS[@]} -eq 0 ]; then
-            echo "No valid Helm chart directories found"
             echo "HELM_EXISTS=false" >> $GITHUB_ENV
             exit 0
           fi
-          
-          echo "Found changed Helm charts in directories:"
-          for dir in "${!CHART_DIRS[@]}"; do
-            echo "  - $dir"
-          done
           
           # Create directory for packaged charts
           mkdir -p .charts
           
           # Package each chart
           for CHART_DIR in "${!CHART_DIRS[@]}"; do
-            echo "Processing chart in $CHART_DIR"
             CHART_NAME=$(grep "name:" $CHART_DIR/Chart.yaml | awk '{print $2}')
             CHART_VERSION=$(grep "version:" $CHART_DIR/Chart.yaml | awk '{print $2}')
             
-            # Package chart
             helm package $CHART_DIR -d .charts/
-            
             echo "Packaged $CHART_NAME-$CHART_VERSION.tgz"
           done
           
-          # Check if any charts were packaged
           if [ -z "$(ls -A .charts/ 2>/dev/null)" ]; then
-            echo "No charts were packaged"
             echo "HELM_EXISTS=false" >> $GITHUB_ENV
           else
-            echo "Successfully packaged charts:"
-            ls -la .charts/
             echo "HELM_EXISTS=true" >> $GITHUB_ENV
+            cat changed_charts.txt | sort | uniq > unique_changed_charts.txt
+            echo "CHANGED_CHARTS_FILE=unique_changed_charts.txt" >> $GITHUB_ENV
           fi
 
       - name: Checkout gh-pages branch
@@ -120,27 +98,73 @@ jobs:
           token: ${{ secrets.APP_INSTALLATION_TOKEN }}
           fetch-depth: 0
 
-      - name: Update Helm repository
+      - name: Custom Helm index update
         if: env.SKIP_WORKFLOW != 'true' && env.HELM_EXISTS == 'true'
         run: |
-          # First, copy packaged charts to gh-pages directory
-          cp .charts/*.tgz gh-pages/ || { echo "No charts to copy"; exit 0; }
-          
-          # Go to gh-pages directory
+          # Copy packaged charts to gh-pages directory
+          cp .charts/*.tgz gh-pages/
           cd gh-pages
           
-          # Update the index.yaml file, merging with existing entries
-          if [ -f "index.yaml" ] && [ -s "index.yaml" ]; then
-            echo "Updating existing index.yaml"
-            helm repo index . --url https://htdio-stg.github.io/deploy-templates --merge index.yaml
-          else
-            echo "Creating new index.yaml"
+          # If there's no index.yaml, create a new one
+          if [ ! -f "index.yaml" ] || [ ! -s "index.yaml" ]; then
             helm repo index . --url https://htdio-stg.github.io/deploy-templates
+            echo "" >> index.yaml
+            echo "# Charts updated from main branch on $(date)" >> index.yaml
+            exit 0
           fi
           
-          # Add metadata annotation
-          echo "" >> index.yaml
-          echo "# Charts updated from main branch on $(date)" >> index.yaml
+          # Create a temp directory to generate an index for just the new charts
+          mkdir -p ../temp_repo
+          cp ../.charts/*.tgz ../temp_repo/
+          
+          # Create a new index just for the updated charts
+          cd ../temp_repo
+          helm repo index . --url https://htdio-stg.github.io/deploy-templates
+          
+          # Now we'll use Python to do a proper merge that preserves timestamps
+          cd ..
+          python3 -c "
+import yaml
+import sys
+from datetime import datetime
+
+# Load existing index
+with open('gh-pages/index.yaml', 'r') as f:
+    existing_index = yaml.safe_load(f)
+
+# Load new index
+with open('temp_repo/index.yaml', 'r') as f:
+    new_index = yaml.safe_load(f)
+
+# Get list of changed chart names
+changed_charts = []
+try:
+    with open('unique_changed_charts.txt', 'r') as f:
+        changed_charts = [line.strip() for line in f.readlines()]
+    print(f'Changed charts: {changed_charts}')
+except:
+    print('No changed_charts file found')
+    sys.exit(1)
+
+# Update only entries for changed charts
+for chart_name in changed_charts:
+    if chart_name in new_index['entries']:
+        print(f'Updating {chart_name} in index')
+        existing_index['entries'][chart_name] = new_index['entries'][chart_name]
+    else:
+        print(f'Warning: {chart_name} not found in new index')
+
+# Update generated timestamp
+existing_index['generated'] = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S.%fZ')
+
+# Save the updated index
+with open('gh-pages/index.yaml', 'w') as f:
+    yaml.dump(existing_index, f, default_flow_style=False)
+
+# Add the annotation comment
+with open('gh-pages/index.yaml', 'a') as f:
+    f.write('\n# Charts updated from main branch on ' + datetime.utcnow().strftime('%a %b %d %H:%M:%S UTC %Y') + '\n')
+"
 
       - name: Commit and push to gh-pages
         if: env.SKIP_WORKFLOW != 'true' && env.HELM_EXISTS == 'true'
@@ -150,7 +174,7 @@ jobs:
           git config user.name "GitHub Actions Bot"
           git config user.email "actions@github.com"
           
-          # Add all new/changed chart files and the index.yaml
+          # Add only changed files
           git add index.yaml
           for file in ../.charts/*.tgz; do
             basename=$(basename "$file")
@@ -163,9 +187,25 @@ jobs:
           else
             git commit -m "Update Helm charts from main branch"
             
-            # Pull before pushing to avoid conflicts
-            git pull --rebase origin gh-pages
+            # Push changes with retry logic
+            MAX_RETRIES=3
+            RETRY_COUNT=0
             
-            # Push changes
-            git push origin gh-pages
+            while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+              git pull --rebase origin gh-pages
+              
+              if git push origin gh-pages; then
+                echo "Successfully pushed changes"
+                break
+              else
+                RETRY_COUNT=$((RETRY_COUNT+1))
+                if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
+                  echo "Push failed, retrying in 5 seconds... (Attempt $RETRY_COUNT of $MAX_RETRIES)"
+                  sleep 5
+                else
+                  echo "Failed to push after $MAX_RETRIES attempts"
+                  exit 1
+                fi
+              fi
+            done
           fi
