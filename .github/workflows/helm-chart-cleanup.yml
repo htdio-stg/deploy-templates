@@ -11,6 +11,10 @@ permissions:
 jobs:
   detect-and-cleanup:
     runs-on: ubuntu-latest
+    # Add concurrency to prevent multiple workflows running simultaneously on the same branch
+    concurrency:
+      group: ${{ github.workflow }}-${{ github.ref }}
+      cancel-in-progress: false
     steps:
       - name: Checkout repository (main branch)
         uses: actions/checkout@v3
@@ -64,6 +68,8 @@ jobs:
           ref: gh-pages
           path: gh-pages
           token: ${{ secrets.APP_INSTALLATION_TOKEN }}
+          # Add fetch-depth: 0 to get full history
+          fetch-depth: 0
 
       - name: Remove deleted charts from index.yaml
         if: env.CLEANUP_NEEDED == 'true'
@@ -129,6 +135,30 @@ jobs:
           if git diff --staged --quiet; then
             echo "No changes to commit"
           else
+            # Pull latest changes to avoid conflicts
+            git pull --rebase origin gh-pages
+            
             git commit -m "Remove charts for deleted apps: $DELETED_APPS"
-            git push
+            
+            # Add retry logic for pushing
+            MAX_RETRIES=5
+            RETRY_COUNT=0
+            
+            while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+              if git push; then
+                echo "Successfully pushed changes"
+                break
+              else
+                RETRY_COUNT=$((RETRY_COUNT+1))
+                if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
+                  echo "Push failed, retrying in 5 seconds... (Attempt $RETRY_COUNT of $MAX_RETRIES)"
+                  sleep 5
+                  # Pull again before retrying
+                  git pull --rebase origin gh-pages
+                else
+                  echo "Failed to push after $MAX_RETRIES attempts"
+                  exit 1
+                fi
+              fi
+            done
           fi
