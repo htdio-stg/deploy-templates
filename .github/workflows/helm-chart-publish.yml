@@ -16,7 +16,7 @@ jobs:
     # Add concurrency to prevent multiple workflows running simultaneously on the same branch
     concurrency:
       group: ${{ github.workflow }}-${{ github.ref }}
-      cancel-in-progress: false
+      cancel-in-progress: true  # Changed to true to prevent conflicts
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
@@ -44,46 +44,71 @@ jobs:
         with:
           version: 'latest'
 
-      - name: Find and package Helm charts
+      - name: Find and package changed Helm charts
         if: env.SKIP_WORKFLOW != 'true'
         run: |
-          # Find all Chart.yaml files
-          CHART_DIRS=$(find . -type f -name "Chart.yaml" | xargs dirname)
+          # Find changed files in this commit
+          CHANGED_FILES=$(git diff --name-only HEAD^ HEAD | grep "helm/" || echo "")
           
-          if [ -z "$CHART_DIRS" ]; then
-            echo "No Helm charts found"
+          if [ -z "$CHANGED_FILES" ]; then
+            echo "No Helm chart files changed in this commit"
+            echo "HELM_EXISTS=false" >> $GITHUB_ENV
+            exit 0
+          fi
+          
+          # Extract unique chart directories from changed files
+          echo "Changed Helm files:"
+          echo "$CHANGED_FILES"
+          
+          # Create an array to store unique chart directories
+          declare -A CHART_DIRS
+          
+          for FILE in $CHANGED_FILES; do
+            # Extract the app directory (assuming structure like app-name/helm/...)
+            APP_NAME=$(echo $FILE | cut -d'/' -f1)
+            HELM_DIR="${APP_NAME}/helm"
+            
+            # Check if this is a valid helm chart directory
+            if [ -f "${HELM_DIR}/Chart.yaml" ]; then
+              CHART_DIRS["$HELM_DIR"]=1
+            fi
+          done
+          
+          # Check if we found any valid chart directories
+          if [ ${#CHART_DIRS[@]} -eq 0 ]; then
+            echo "No valid Helm chart directories found"
+            echo "HELM_EXISTS=false" >> $GITHUB_ENV
+            exit 0
+          fi
+          
+          echo "Found changed Helm charts in directories:"
+          for dir in "${!CHART_DIRS[@]}"; do
+            echo "  - $dir"
+          done
+          
+          # Create directory for packaged charts
+          mkdir -p .charts
+          
+          # Package each chart
+          for CHART_DIR in "${!CHART_DIRS[@]}"; do
+            echo "Processing chart in $CHART_DIR"
+            CHART_NAME=$(grep "name:" $CHART_DIR/Chart.yaml | awk '{print $2}')
+            CHART_VERSION=$(grep "version:" $CHART_DIR/Chart.yaml | awk '{print $2}')
+            
+            # Package chart
+            helm package $CHART_DIR -d .charts/
+            
+            echo "Packaged $CHART_NAME-$CHART_VERSION.tgz"
+          done
+          
+          # Check if any charts were packaged
+          if [ -z "$(ls -A .charts/ 2>/dev/null)" ]; then
+            echo "No charts were packaged"
             echo "HELM_EXISTS=false" >> $GITHUB_ENV
           else
-            echo "Found Helm charts in: $CHART_DIRS"
-            echo "HELM_EXISTS=true" >> $GITHUB_ENV
-            
-            # Create directory for packaged charts
-            mkdir -p .charts
-            
-            # Package each chart
-            for CHART_DIR in $CHART_DIRS; do
-              echo "Processing chart in $CHART_DIR"
-              CHART_NAME=$(grep "name:" $CHART_DIR/Chart.yaml | awk '{print $2}')
-              CHART_VERSION=$(grep "version:" $CHART_DIR/Chart.yaml | awk '{print $2}')
-              
-              # Add app name to chart name for uniqueness
-              APP_NAME=$(echo $CHART_DIR | cut -d'/' -f2)
-              
-              # Package chart
-              helm package $CHART_DIR -d .charts/
-              
-              echo "Packaged $CHART_NAME-$CHART_VERSION.tgz from $APP_NAME"
-            done
-            
-            # Save list of packaged charts for debugging
-            echo "Packaged charts:"
+            echo "Successfully packaged charts:"
             ls -la .charts/
-            
-            # Check if any charts were packaged
-            if [ -z "$(ls -A .charts/ 2>/dev/null)" ]; then
-              echo "No charts were packaged"
-              echo "HELM_EXISTS=false" >> $GITHUB_ENV
-            fi
+            echo "HELM_EXISTS=true" >> $GITHUB_ENV
           fi
 
       - name: Checkout gh-pages branch
@@ -93,35 +118,23 @@ jobs:
           ref: gh-pages
           path: gh-pages
           token: ${{ secrets.APP_INSTALLATION_TOKEN }}
-          # Add fetch-depth: 0 to get full history
           fetch-depth: 0
 
       - name: Update Helm repository
         if: env.SKIP_WORKFLOW != 'true' && env.HELM_EXISTS == 'true'
         run: |
-          echo "Contents of .charts directory:"
-          ls -la .charts/ || echo "No .charts directory"
-          
-          # Check if there are any packaged charts
-          if [ ! -d ".charts" ] || [ -z "$(ls -A .charts/ 2>/dev/null)" ]; then
-            echo "No charts to publish"
-            exit 0
-          fi
-          
-          # Move packaged charts to gh-pages directory
+          # First, copy packaged charts to gh-pages directory
           cp .charts/*.tgz gh-pages/ || { echo "No charts to copy"; exit 0; }
           
           # Go to gh-pages directory
           cd gh-pages
           
-          # Check if index.yaml exists and has content
+          # Update the index.yaml file, merging with existing entries
           if [ -f "index.yaml" ] && [ -s "index.yaml" ]; then
             echo "Updating existing index.yaml"
             helm repo index . --url https://htdio-stg.github.io/deploy-templates --merge index.yaml
           else
             echo "Creating new index.yaml"
-            # Remove empty index.yaml if it exists
-            rm -f index.yaml
             helm repo index . --url https://htdio-stg.github.io/deploy-templates
           fi
           
@@ -132,53 +145,16 @@ jobs:
       - name: Commit and push to gh-pages
         if: env.SKIP_WORKFLOW != 'true' && env.HELM_EXISTS == 'true'
         run: |
-          echo "Contents of .charts directory before commit:"
-          ls -la .charts/ || echo "No .charts directory"
-          
-          # Copy charts to gh-pages directory again to be sure
-          cp .charts/*.tgz gh-pages/ || echo "Failed to copy charts, but continuing"
-          
           cd gh-pages
-          
-          echo "Contents of gh-pages directory:"
-          ls -la
           
           git config user.name "GitHub Actions Bot"
           git config user.email "actions@github.com"
           
-          # Pull latest changes from remote first to avoid conflicts
-          git fetch origin gh-pages
-          git reset --hard origin/gh-pages
-          
-          # Copy the charts back after the reset
-          echo "Copying charts back after reset..."
-          find ../.charts -name "*.tgz" -type f -exec cp {} . \; || echo "No charts to copy"
-          
-          echo "Contents of gh-pages directory after copying charts:"
-          ls -la *.tgz || echo "No charts found"
-          
-          # Re-run indexing
-          if [ -f "index.yaml" ] && [ -s "index.yaml" ]; then
-            echo "Updating index.yaml again after reset"
-            helm repo index . --url https://htdio-stg.github.io/deploy-templates --merge index.yaml
-          else
-            echo "Creating new index.yaml after reset"
-            helm repo index . --url https://htdio-stg.github.io/deploy-templates
-          fi
-          
-          # Add metadata annotation again
-          echo "" >> index.yaml
-          echo "# Charts updated from main branch on $(date)" >> index.yaml
-          
-          # Now add files
+          # Add all new/changed chart files and the index.yaml
           git add index.yaml
-          
-          # Find and add all chart files
-          for chart in *.tgz; do
-            if [ -f "$chart" ]; then
-              echo "Adding chart file: $chart"
-              git add "$chart"
-            fi
+          for file in ../.charts/*.tgz; do
+            basename=$(basename "$file")
+            git add "$basename"
           done
           
           # Only commit if there are changes
@@ -187,44 +163,9 @@ jobs:
           else
             git commit -m "Update Helm charts from main branch"
             
-            # Add retry logic for pushing with force if needed
-            MAX_RETRIES=5
-            RETRY_COUNT=0
+            # Pull before pushing to avoid conflicts
+            git pull --rebase origin gh-pages
             
-            while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
-              # Try to push normally first
-              if git push; then
-                echo "Successfully pushed changes"
-                break
-              elif [ $RETRY_COUNT -lt 3 ]; then
-                # First few attempts: try with pull and merge
-                RETRY_COUNT=$((RETRY_COUNT+1))
-                echo "Push failed, retrying with merge... (Attempt $RETRY_COUNT of $MAX_RETRIES)"
-                git pull origin gh-pages --no-rebase || true
-                
-                # Try pushing again
-                if git push; then
-                  echo "Successfully pushed changes after merging"
-                  break
-                fi
-                
-                sleep 5
-              else
-                # Last attempts: try with force-push if all else fails
-                RETRY_COUNT=$((RETRY_COUNT+1))
-                echo "Push with merge failed, retrying with force-push as last resort... (Attempt $RETRY_COUNT of $MAX_RETRIES)"
-                
-                if git push --force; then
-                  echo "Successfully force-pushed changes"
-                  break
-                fi
-                
-                if [ $RETRY_COUNT -ge $MAX_RETRIES ]; then
-                  echo "Failed to push after $MAX_RETRIES attempts"
-                  exit 1
-                fi
-                
-                sleep 5
-              fi
-            done
+            # Push changes
+            git push origin gh-pages
           fi
