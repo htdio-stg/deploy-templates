@@ -97,34 +97,34 @@ jobs:
       - name: Custom indexing approach
         if: env.SKIP_WORKFLOW != 'true' && env.HELM_EXISTS == 'true'
         run: |
-          # Copy packaged charts to gh-pages directory without overwriting index.yaml
-          cp .charts/*.tgz gh-pages/
           cd gh-pages
+          
+          # Create charts directory if it doesn't exist
+          mkdir -p charts
+          
+          # Copy packaged charts to the charts subdirectory
+          cp ../.charts/*.tgz charts/
           
           # Store a list of the helm chart packages we just added
           NEW_CHARTS=$(ls ../.charts/*.tgz | xargs -n1 basename)
           echo "New/updated charts: $NEW_CHARTS"
           
-          # If there's no index.yaml, create a new one
+          # If there's no index.yaml, create a new one with the proper URL path
           if [ ! -f "index.yaml" ] || [ ! -s "index.yaml" ]; then
-            helm repo index . --url https://htdio-stg.github.io/deploy-templates
+            helm repo index . --url https://htdio-stg.github.io/deploy-templates/charts
           else
             # First, make a backup of the existing index
             cp index.yaml index.yaml.bak
             
-            # Now run indexing only for the new charts
-            # This is a key step: instead of using --merge which can update all timestamps,
-            # we'll use a different approach to only update entries for changed charts
-            
             # Make a temporary directory for the new charts only
             mkdir -p ../temp_charts
             for chart in $NEW_CHARTS; do
-              cp "$chart" ../temp_charts/
+              cp charts/"$chart" ../temp_charts/
             done
             
-            # Generate an index for just the new charts
+            # Generate an index for just the new charts with the proper URL path
             cd ../temp_charts
-            helm repo index . --url https://htdio-stg.github.io/deploy-templates
+            helm repo index . --url https://htdio-stg.github.io/deploy-templates/charts
             cd ../gh-pages
             
             # Now manually merge the indexes using yq
@@ -171,11 +171,13 @@ jobs:
           git config user.name "GitHub Actions Bot"
           git config user.email "actions@github.com"
           
-          # Add only the new charts and the index.yaml
+          # Add the index.yaml file
           git add index.yaml
+          
+          # Add the chart files in the charts directory
           for file in ../.charts/*.tgz; do
             basename=$(basename "$file")
-            git add "$basename"
+            git add charts/"$basename"
           done
           
           # Only commit if there are changes
