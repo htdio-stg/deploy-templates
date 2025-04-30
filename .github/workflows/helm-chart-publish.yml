@@ -121,9 +121,9 @@ jobs:
           cd ../temp_repo
           helm repo index . --url https://htdio-stg.github.io/deploy-templates
           
-          # Now we'll use Python to do a proper merge that preserves timestamps
+          # Now use Python to do a proper merge that preserves timestamps
           cd ..
-          python3 -c "
+          cat > merge_index.py << 'EOF'
 import yaml
 import sys
 from datetime import datetime
@@ -160,11 +160,14 @@ existing_index['generated'] = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S.%fZ'
 # Save the updated index
 with open('gh-pages/index.yaml', 'w') as f:
     yaml.dump(existing_index, f, default_flow_style=False)
+EOF
 
-# Add the annotation comment
-with open('gh-pages/index.yaml', 'a') as f:
-    f.write('\n# Charts updated from main branch on ' + datetime.utcnow().strftime('%a %b %d %H:%M:%S UTC %Y') + '\n')
-"
+          # Execute the Python script
+          python3 merge_index.py
+          
+          # Add the annotation comment
+          echo "" >> gh-pages/index.yaml
+          echo "# Charts updated from main branch on $(date)" >> gh-pages/index.yaml
 
       - name: Commit and push to gh-pages
         if: env.SKIP_WORKFLOW != 'true' && env.HELM_EXISTS == 'true'
