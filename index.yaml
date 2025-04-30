@@ -112,6 +112,20 @@ entries:
       urls:
         - https://htdio-stg.github.io/deploy-templates/charts/developit-unfetch-0.1.0.tgz
       version: 0.1.0
-generated: "2025-04-30T10:46:34.232927862Z"
+  ashwin-pc-hiccup:
+    - apiVersion: v2
+      appVersion: 1.0.0
+      created: "2025-04-30T21:40:06.264033368Z"
+      description: A Helm chart for DeployStack application generated from Docker configuration
+      digest: 0da7f182e24fdca90d0bbfabbe427305e3c0ccb3a76eb1e7ab2af709b53c269a
+      maintainers:
+        - email: hello@deploystack.io
+          name: DeployStack
+      name: ashwin-pc-hiccup
+      type: application
+      urls:
+        - https://htdio-stg.github.io/deploy-templates/charts/ashwin-pc-hiccup-0.1.1.tgz
+      version: 0.1.1
+generated: "2025-04-30T21:40:06.627524529Z"
 
-# Charts updated from main branch on Wed Apr 30 10:46:34 UTC 2025
+# Charts updated from main branch on Wed Apr 30 21:40:06 UTC 2025
