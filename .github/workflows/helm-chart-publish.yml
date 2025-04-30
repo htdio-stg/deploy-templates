@@ -156,7 +156,10 @@ jobs:
             rm -f temp_entry.yaml
           fi
           
-          # Add metadata annotation
+          # Remove any existing timestamp comments
+          sed -i '/^# Charts updated from main branch on/d' index.yaml
+          
+          # Add a single new metadata annotation
           echo "" >> index.yaml
           echo "# Charts updated from main branch on $(date)" >> index.yaml
 
