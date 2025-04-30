@@ -58,9 +58,6 @@ jobs:
             
             if [ -f "${HELM_DIR}/Chart.yaml" ]; then
               CHART_DIRS["$HELM_DIR"]=1
-              # Store chart names in a file for later use
-              CHART_NAME=$(grep "name:" $HELM_DIR/Chart.yaml | awk '{print $2}')
-              echo "$CHART_NAME" >> changed_charts.txt
             fi
           done
           
@@ -74,6 +71,7 @@ jobs:
           
           # Package each chart
           for CHART_DIR in "${!CHART_DIRS[@]}"; do
+            echo "Processing chart in $CHART_DIR"
             CHART_NAME=$(grep "name:" $CHART_DIR/Chart.yaml | awk '{print $2}')
             CHART_VERSION=$(grep "version:" $CHART_DIR/Chart.yaml | awk '{print $2}')
             
@@ -85,8 +83,6 @@ jobs:
             echo "HELM_EXISTS=false" >> $GITHUB_ENV
           else
             echo "HELM_EXISTS=true" >> $GITHUB_ENV
-            cat changed_charts.txt | sort | uniq > unique_changed_charts.txt
-            echo "CHANGED_CHARTS_FILE=unique_changed_charts.txt" >> $GITHUB_ENV
           fi
 
       - name: Checkout gh-pages branch
@@ -98,76 +94,71 @@ jobs:
           token: ${{ secrets.APP_INSTALLATION_TOKEN }}
           fetch-depth: 0
 
-      - name: Custom Helm index update
+      - name: Custom indexing approach
         if: env.SKIP_WORKFLOW != 'true' && env.HELM_EXISTS == 'true'
         run: |
-          # Copy packaged charts to gh-pages directory
+          # Copy packaged charts to gh-pages directory without overwriting index.yaml
           cp .charts/*.tgz gh-pages/
           cd gh-pages
+          
+          # Store a list of the helm chart packages we just added
+          NEW_CHARTS=$(ls ../.charts/*.tgz | xargs -n1 basename)
+          echo "New/updated charts: $NEW_CHARTS"
           
           # If there's no index.yaml, create a new one
           if [ ! -f "index.yaml" ] || [ ! -s "index.yaml" ]; then
             helm repo index . --url https://htdio-stg.github.io/deploy-templates
-            echo "" >> index.yaml
-            echo "# Charts updated from main branch on $(date)" >> index.yaml
-            exit 0
+          else
+            # First, make a backup of the existing index
+            cp index.yaml index.yaml.bak
+            
+            # Now run indexing only for the new charts
+            # This is a key step: instead of using --merge which can update all timestamps,
+            # we'll use a different approach to only update entries for changed charts
+            
+            # Make a temporary directory for the new charts only
+            mkdir -p ../temp_charts
+            for chart in $NEW_CHARTS; do
+              cp "$chart" ../temp_charts/
+            done
+            
+            # Generate an index for just the new charts
+            cd ../temp_charts
+            helm repo index . --url https://htdio-stg.github.io/deploy-templates
+            cd ../gh-pages
+            
+            # Now manually merge the indexes using yq
+            # Install yq
+            sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+            sudo chmod +x /usr/local/bin/yq
+            
+            # For each new/updated chart, replace its entry in the main index
+            for chart in $NEW_CHARTS; do
+              # Extract chart name from filename (removes version and extension)
+              CHART_NAME=$(echo "$chart" | sed -E 's/(.+)-[0-9]+\.[0-9]+\.[0-9]+\.tgz/\1/')
+              echo "Processing chart name: $CHART_NAME"
+              
+              # Check if this chart exists in the new index
+              if grep -q "name: $CHART_NAME" ../temp_charts/index.yaml; then
+                # Extract the updated entry from new index
+                yq eval ".entries.$CHART_NAME" ../temp_charts/index.yaml > temp_entry.yaml
+                
+                # Replace the entry in the main index
+                yq eval -i ".entries.$CHART_NAME = load(\"temp_entry.yaml\")" index.yaml
+                echo "Updated entry for $CHART_NAME in main index"
+              fi
+            done
+            
+            # Update the generated timestamp in index.yaml
+            yq eval -i ".generated = \"$(date -u +"%Y-%m-%dT%H:%M:%S.%NZ")\"" index.yaml
+            
+            # Clean up
+            rm -f temp_entry.yaml
           fi
           
-          # Create a temp directory to generate an index for just the new charts
-          mkdir -p ../temp_repo
-          cp ../.charts/*.tgz ../temp_repo/
-          
-          # Create a new index just for the updated charts
-          cd ../temp_repo
-          helm repo index . --url https://htdio-stg.github.io/deploy-templates
-          
-          # Now use Python to do a proper merge that preserves timestamps
-          cd ..
-          cat > merge_index.py << 'EOF'
-import yaml
-import sys
-from datetime import datetime
-
-# Load existing index
-with open('gh-pages/index.yaml', 'r') as f:
-    existing_index = yaml.safe_load(f)
-
-# Load new index
-with open('temp_repo/index.yaml', 'r') as f:
-    new_index = yaml.safe_load(f)
-
-# Get list of changed chart names
-changed_charts = []
-try:
-    with open('unique_changed_charts.txt', 'r') as f:
-        changed_charts = [line.strip() for line in f.readlines()]
-    print(f'Changed charts: {changed_charts}')
-except:
-    print('No changed_charts file found')
-    sys.exit(1)
-
-# Update only entries for changed charts
-for chart_name in changed_charts:
-    if chart_name in new_index['entries']:
-        print(f'Updating {chart_name} in index')
-        existing_index['entries'][chart_name] = new_index['entries'][chart_name]
-    else:
-        print(f'Warning: {chart_name} not found in new index')
-
-# Update generated timestamp
-existing_index['generated'] = datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S.%fZ')
-
-# Save the updated index
-with open('gh-pages/index.yaml', 'w') as f:
-    yaml.dump(existing_index, f, default_flow_style=False)
-EOF
-
-          # Execute the Python script
-          python3 merge_index.py
-          
-          # Add the annotation comment
-          echo "" >> gh-pages/index.yaml
-          echo "# Charts updated from main branch on $(date)" >> gh-pages/index.yaml
+          # Add metadata annotation
+          echo "" >> index.yaml
+          echo "# Charts updated from main branch on $(date)" >> index.yaml
 
       - name: Commit and push to gh-pages
         if: env.SKIP_WORKFLOW != 'true' && env.HELM_EXISTS == 'true'
@@ -177,7 +168,7 @@ EOF
           git config user.name "GitHub Actions Bot"
           git config user.email "actions@github.com"
           
-          # Add only changed files
+          # Add only the new charts and the index.yaml
           git add index.yaml
           for file in ../.charts/*.tgz; do
             basename=$(basename "$file")
