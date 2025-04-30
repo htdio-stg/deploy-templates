@@ -16,8 +16,8 @@ services:
     service:
       type: ClusterIP
       ports:
-        - port: 80
-          targetPort: 80
+        - port: 85
+          targetPort: 85
           protocol: TCP
     environment:
       regular: {}
