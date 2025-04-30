@@ -101,15 +101,31 @@ jobs:
           git config user.name "GitHub Actions Bot"
           git config user.email "actions@github.com"
           
+          # Pull latest changes from remote first to avoid conflicts
+          git fetch origin gh-pages
+          git reset --hard origin/gh-pages
+          
+          # Copy the charts back (they might have been lost in the reset)
+          cp ../.charts/*.tgz .
+          
+          # Re-run indexing
+          if [ -f "index.yaml" ] && [ -s "index.yaml" ]; then
+            helm repo index . --url https://htdio-stg.github.io/deploy-templates --merge index.yaml
+          else
+            helm repo index . --url https://htdio-stg.github.io/deploy-templates
+          fi
+          
+          # Add metadata annotation again
+          echo "" >> index.yaml
+          echo "# Charts updated from main branch on $(date)" >> index.yaml
+          
+          # Now add files
           git add index.yaml *.tgz
           
           # Only commit if there are changes
           if git diff --staged --quiet; then
             echo "No changes to commit"
           else
-            # Pull latest changes to avoid conflicts 
-            git pull --rebase origin gh-pages
-            
             git commit -m "Update Helm charts from main branch"
             
             # Add retry logic for pushing
@@ -117,6 +133,9 @@ jobs:
             RETRY_COUNT=0
             
             while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
+              # Pull with --ff-only to avoid rebase issues with staged changes
+              git pull --ff-only origin gh-pages || true
+              
               if git push; then
                 echo "Successfully pushed changes"
                 break
@@ -125,8 +144,6 @@ jobs:
                 if [ $RETRY_COUNT -lt $MAX_RETRIES ]; then
                   echo "Push failed, retrying in 5 seconds... (Attempt $RETRY_COUNT of $MAX_RETRIES)"
                   sleep 5
-                  # Pull again before retrying
-                  git pull --rebase origin gh-pages
                 else
                   echo "Failed to push after $MAX_RETRIES attempts"
                   exit 1
