@@ -75,8 +75,12 @@ jobs:
               echo "Packaged $CHART_NAME-$CHART_VERSION.tgz from $APP_NAME"
             done
             
+            # Save list of packaged charts for debugging
+            echo "Packaged charts:"
+            ls -la .charts/
+            
             # Check if any charts were packaged
-            if [ -z "$(ls -A .charts/)" ]; then
+            if [ -z "$(ls -A .charts/ 2>/dev/null)" ]; then
               echo "No charts were packaged"
               echo "HELM_EXISTS=false" >> $GITHUB_ENV
             fi
@@ -95,8 +99,11 @@ jobs:
       - name: Update Helm repository
         if: env.SKIP_WORKFLOW != 'true' && env.HELM_EXISTS == 'true'
         run: |
+          echo "Contents of .charts directory:"
+          ls -la .charts/ || echo "No .charts directory"
+          
           # Check if there are any packaged charts
-          if [ ! -d ".charts" ] || [ -z "$(ls -A .charts/)" ]; then
+          if [ ! -d ".charts" ] || [ -z "$(ls -A .charts/ 2>/dev/null)" ]; then
             echo "No charts to publish"
             exit 0
           fi
@@ -125,13 +132,16 @@ jobs:
       - name: Commit and push to gh-pages
         if: env.SKIP_WORKFLOW != 'true' && env.HELM_EXISTS == 'true'
         run: |
-          # Check if charts directory exists and has content
-          if [ ! -d ".charts" ] || [ -z "$(ls -A .charts/)" ]; then
-            echo "No charts to publish"
-            exit 0
-          fi
+          echo "Contents of .charts directory before commit:"
+          ls -la .charts/ || echo "No .charts directory"
+          
+          # Copy charts to gh-pages directory again to be sure
+          cp .charts/*.tgz gh-pages/ || echo "Failed to copy charts, but continuing"
           
           cd gh-pages
+          
+          echo "Contents of gh-pages directory:"
+          ls -la
           
           git config user.name "GitHub Actions Bot"
           git config user.email "actions@github.com"
@@ -140,18 +150,19 @@ jobs:
           git fetch origin gh-pages
           git reset --hard origin/gh-pages
           
-          # Copy the charts back (they might have been lost in the reset)
-          if [ -f "../.charts/"*.tgz ]; then
-            cp ../.charts/*.tgz . || echo "No charts to copy"
-          else
-            echo "No charts found to copy"
-            exit 0
-          fi
+          # Copy the charts back after the reset
+          echo "Copying charts back after reset..."
+          find ../.charts -name "*.tgz" -type f -exec cp {} . \; || echo "No charts to copy"
+          
+          echo "Contents of gh-pages directory after copying charts:"
+          ls -la *.tgz || echo "No charts found"
           
           # Re-run indexing
           if [ -f "index.yaml" ] && [ -s "index.yaml" ]; then
+            echo "Updating index.yaml again after reset"
             helm repo index . --url https://htdio-stg.github.io/deploy-templates --merge index.yaml
           else
+            echo "Creating new index.yaml after reset"
             helm repo index . --url https://htdio-stg.github.io/deploy-templates
           fi
           
@@ -161,9 +172,14 @@ jobs:
           
           # Now add files
           git add index.yaml
-          if ls *.tgz &> /dev/null; then
-            git add *.tgz
-          fi
+          
+          # Find and add all chart files
+          for chart in *.tgz; do
+            if [ -f "$chart" ]; then
+              echo "Adding chart file: $chart"
+              git add "$chart"
+            fi
+          done
           
           # Only commit if there are changes
           if git diff --staged --quiet; then
