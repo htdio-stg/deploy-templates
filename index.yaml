@@ -1,0 +1,117 @@
+apiVersion: v1
+entries:
+  bgstaal-multiplewindow3dscene:
+    - apiVersion: v2
+      appVersion: 1.0.0
+      created: "2025-04-30T10:13:45.916909509Z"
+      description: A Helm chart for DeployStack application generated from Docker configuration
+      digest: 6ab263ebca2ffe24a8e8d63dc0e2cb8fefdfc18866504620e31d9be9f68271e6
+      maintainers:
+        - email: hello@deploystack.io
+          name: DeployStack
+      name: bgstaal-multiplewindow3dscene
+      type: application
+      urls:
+        - https://htdio-stg.github.io/deploy-templates/charts/bgstaal-multiplewindow3dscene-0.1.0.tgz
+      version: 0.1.0
+  deploystack-app:
+    - apiVersion: v2
+      appVersion: 1.0.0
+      created: "2025-04-30T10:13:45.917224939Z"
+      description: A Helm chart for DeployStack application generated from Docker configuration
+      digest: ae6aefaceede6c15fb1eb2cfd4c735bde53fed8438d12b34188251f470ef07d6
+      maintainers:
+        - email: hello@deploystack.io
+          name: DeployStack
+      name: deploystack-app
+      type: application
+      urls:
+        - https://htdio-stg.github.io/deploy-templates/charts/deploystack-app-0.1.0.tgz
+      version: 0.1.0
+  juspay-hyperswitch:
+    - apiVersion: v2
+      appVersion: 1.0.0
+      created: "2025-04-30T10:13:45.917550639Z"
+      description: A Helm chart for DeployStack application generated from Docker configuration
+      digest: 96d3a718e9bc2c573a6041506eb57dfc02e54791902f74c2d6e1cac0f37d3b68
+      maintainers:
+        - email: hello@deploystack.io
+          name: DeployStack
+      name: juspay-hyperswitch
+      type: application
+      urls:
+        - https://htdio-stg.github.io/deploy-templates/charts/juspay-hyperswitch-0.1.0.tgz
+      version: 0.1.0
+  microsoft-terminal:
+    - apiVersion: v2
+      appVersion: 1.0.0
+      created: "2025-04-30T10:13:45.917879144Z"
+      description: A Helm chart for DeployStack application generated from Docker configuration
+      digest: d613979555a4468697eb308869c4d154bfc2e70c3c44e9a3c95eb975eed2a783
+      maintainers:
+        - email: hello@deploystack.io
+          name: DeployStack
+      name: microsoft-terminal
+      type: application
+      urls:
+        - https://htdio-stg.github.io/deploy-templates/charts/microsoft-terminal-0.1.0.tgz
+      version: 0.1.0
+  practical-tutorials-project-based-learning:
+    - apiVersion: v2
+      appVersion: 1.0.0
+      created: "2025-04-30T10:13:45.918164849Z"
+      description: A Helm chart for DeployStack application generated from Docker configuration
+      digest: 31d3f9e44d099f531e9ffdad6d0965bb2a080c01d21b7d5b07c3b4f814c65595
+      maintainers:
+        - email: hello@deploystack.io
+          name: DeployStack
+      name: practical-tutorials-project-based-learning
+      type: application
+      urls:
+        - https://htdio-stg.github.io/deploy-templates/charts/practical-tutorials-project-based-learning-0.1.0.tgz
+      version: 0.1.0
+  lobehub-lobe-chat:
+    - apiVersion: v2
+      appVersion: 1.0.0
+      created: "2025-04-30T10:34:52.561285221Z"
+      description: A Helm chart for DeployStack application generated from Docker configuration
+      digest: c03d598ac930b529d6f1a475350bebb27dc833be40b4009d3301e0f537b84e7f
+      maintainers:
+        - email: hello@deploystack.io
+          name: DeployStack
+      name: lobehub-lobe-chat
+      type: application
+      urls:
+        - https://htdio-stg.github.io/deploy-templates/charts/lobehub-lobe-chat-0.1.0.tgz
+      version: 0.1.0
+  metafizzy-infinite-scroll:
+    - apiVersion: v2
+      appVersion: 1.0.0
+      created: "2025-04-30T10:41:19.014596306Z"
+      description: A Helm chart for DeployStack application generated from Docker configuration
+      digest: 3700147053db5c3ad3646fd212801ce0e461acf5c758982f3cd8902945b9d526
+      maintainers:
+        - email: hello@deploystack.io
+          name: DeployStack
+      name: metafizzy-infinite-scroll
+      type: application
+      urls:
+        - https://htdio-stg.github.io/deploy-templates/charts/metafizzy-infinite-scroll-0.1.0.tgz
+      version: 0.1.0
+  developit-unfetch:
+    - apiVersion: v2
+      appVersion: 1.0.0
+      created: "2025-04-30T10:46:33.625322404Z"
+      description: A Helm chart for DeployStack application generated from Docker configuration
+      digest: 8a51501a94e06524ee2068e93a3cfbc5ba83e2846c7dcc98ae0e6815fa267840
+      maintainers:
+        - email: hello@deploystack.io
+          name: DeployStack
+      name: developit-unfetch
+      type: application
+      urls:
+        - https://htdio-stg.github.io/deploy-templates/charts/developit-unfetch-0.1.0.tgz
+      version: 0.1.0
+generated: "2025-04-30T10:46:34.232927862Z"
+
+# Charts updated from main branch on Wed Apr 30 10:46:34 UTC 2025
