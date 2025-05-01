@@ -13,7 +13,7 @@ spec:
       run_command: ""
       envs:
         - key: pipi
-          value: nie wiem
+          value: nie
           scope: RUN_TIME
       http_port: 5244
       routes:

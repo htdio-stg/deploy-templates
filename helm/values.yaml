@@ -21,7 +21,7 @@ services:
           protocol: TCP
     environment:
       regular:
-        pipi: nie wiem
+        pipi: nie
       sensitive: {}
     resources:
       limits:

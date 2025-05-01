@@ -51,7 +51,7 @@ Resources:
             - ContainerPort: 5244
           Environment:
             - name: pipi
-              value: nie wiem
+              value: nie
           LogConfiguration:
             LogDriver: awslogs
             Options:
