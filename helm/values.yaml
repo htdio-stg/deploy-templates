@@ -12,7 +12,7 @@ services:
     image:
       repository: docker.io/library/nginx
       pullPolicy: IfNotPresent
-      tag: latest
+      tag: first1
     service:
       type: ClusterIP
       ports:
