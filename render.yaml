@@ -3,17 +3,13 @@ services:
     type: web
     runtime: image
     image:
-      url: docker.io/xhofe/alist:beta-aio
+      url: docker.io/library/nginx:latest
     startCommand: ""
     plan: starter
     region: oregon
     envVars:
-      - key: PUID
-        value: "0"
-      - key: PGID
-        value: "0"
-      - key: UMASK
-        value: "022"
+      - key: pipi
+        value: nie wiem
       - key: PORT
         value: "5244"
     disk:

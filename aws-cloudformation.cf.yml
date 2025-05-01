@@ -45,17 +45,13 @@ Resources:
       ExecutionRoleArn: !Ref ExecutionRole
       ContainerDefinitions:
         - Name: default
-          Image: docker.io/xhofe/alist:beta-aio
+          Image: docker.io/library/nginx:latest
           ReadonlyRootFilesystem: false
           PortMappings:
             - ContainerPort: 5244
           Environment:
-            - name: PUID
-              value: "0"
-            - name: PGID
-              value: "0"
-            - name: UMASK
-              value: "022"
+            - name: pipi
+              value: nie wiem
           LogConfiguration:
             LogDriver: awslogs
             Options:

@@ -5,21 +5,15 @@ spec:
     - name: default
       image:
         registry_type: DOCKER_HUB
-        registry: xhofe
-        repository: alist
-        tag: beta-aio
+        registry: library
+        repository: nginx
+        tag: latest
       instance_count: 1
       instance_size_slug: basic-xxs
       run_command: ""
       envs:
-        - key: PUID
-          value: "0"
-          scope: RUN_TIME
-        - key: PGID
-          value: "0"
-          scope: RUN_TIME
-        - key: UMASK
-          value: "022"
+        - key: pipi
+          value: nie wiem
           scope: RUN_TIME
       http_port: 5244
       routes:
