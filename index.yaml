@@ -126,6 +126,20 @@ entries:
       urls:
         - https://htdio-stg.github.io/deploy-templates/charts/ashwin-pc-hiccup-0.1.1.tgz
       version: 0.1.1
-generated: "2025-04-30T21:40:06.627524529Z"
+  alistgo-alist:
+    - apiVersion: v2
+      appVersion: 1.0.0
+      created: "2025-05-01T11:13:56.270595162Z"
+      description: A Helm chart for DeployStack application generated from Docker configuration
+      digest: 27a18eb229e5cce97f054b4f3d1a83eea57040b1b8ed36dc8dd48ed7c0b9885b
+      maintainers:
+        - email: hello@deploystack.io
+          name: DeployStack
+      name: alistgo-alist
+      type: application
+      urls:
+        - https://htdio-stg.github.io/deploy-templates/charts/alistgo-alist-0.1.1.tgz
+      version: 0.1.1
+generated: "2025-05-01T11:13:56.755127030Z"
 
-# Charts updated from main branch on Wed Apr 30 21:40:06 UTC 2025
+# Charts updated from main branch on Thu May  1 11:13:56 UTC 2025
