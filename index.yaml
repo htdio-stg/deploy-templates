@@ -129,9 +129,9 @@ entries:
   alistgo-alist:
     - apiVersion: v2
       appVersion: 1.0.0
-      created: "2025-05-01T11:30:48.874623736Z"
+      created: "2025-05-01T11:38:49.75233846Z"
       description: A Helm chart for DeployStack application generated from Docker configuration
-      digest: 0ab14be47fb0633f08439886bb3abb432b35379b1f014025941249d0becd82d0
+      digest: 4e629b20f36a3f2de3dd8eb95cd90049b0485147eaf6f76e9b9ced124a6ea06d
       maintainers:
         - email: hello@deploystack.io
           name: DeployStack
@@ -140,6 +140,6 @@ entries:
       urls:
         - https://htdio-stg.github.io/deploy-templates/charts/alistgo-alist-0.1.1.tgz
       version: 0.1.1
-generated: "2025-05-01T11:30:49.363915282Z"
+generated: "2025-05-01T11:38:50.349276023Z"
 
-# Charts updated from main branch on Thu May  1 11:30:49 UTC 2025
+# Charts updated from main branch on Thu May  1 11:38:50 UTC 2025
