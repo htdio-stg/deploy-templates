@@ -10,9 +10,9 @@ services:
     enabled: true
     replicaCount: 1
     image:
-      repository: docker.io/xhofe/alist
+      repository: docker.io/library/nginx
       pullPolicy: IfNotPresent
-      tag: beta-aio
+      tag: latest
     service:
       type: ClusterIP
       ports:
@@ -21,9 +21,7 @@ services:
           protocol: TCP
     environment:
       regular:
-        PUID: "0"
-        PGID: "0"
-        UMASK: "022"
+        pipi: nie wiem
       sensitive: {}
     resources:
       limits:
