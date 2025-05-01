@@ -45,7 +45,7 @@ Resources:
       ExecutionRoleArn: !Ref ExecutionRole
       ContainerDefinitions:
         - Name: default
-          Image: docker.io/library/nginx:first1
+          Image: docker.io/library/nginx:first2
           ReadonlyRootFilesystem: false
           PortMappings:
             - ContainerPort: 5244
