@@ -9,7 +9,7 @@ services:
     region: oregon
     envVars:
       - key: pipi
-        value: nie jest tak
+        value: nie jest
       - key: PORT
         value: "5244"
     disk:
