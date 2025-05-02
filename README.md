@@ -9,7 +9,9 @@
 | AWS | <a href="https://preview.3dcxy8cjkw-deploy-my.pages.dev/deploy/2dust-v2rayn?provider=aws&language=cfn"><img src="https://github.com/htdio-stg/deploy-templates/blob/main/.assets/img/aws.svg" height="38"></a> |
 | DigitalOcean | <a href="https://preview.3dcxy8cjkw-deploy-my.pages.dev/deploy/2dust-v2rayn?provider=do&language=dop"><img src="https://github.com/htdio-stg/deploy-templates/blob/main/.assets/img/do.svg" height="38"></a> |
 | Render | <a href="https://preview.3dcxy8cjkw-deploy-my.pages.dev/deploy/2dust-v2rayn?provider=rnd&language=rnd"><img src="https://github.com/htdio-stg/deploy-templates/blob/main/.assets/img/rnd.svg" height="38"></a> |
-| Helm | `helm install 2dust-v2rayn https://github.com/htdio-stg/deploy-templates/tree/2dust-v2rayn/helm` |
+| Helm | `helm repo add htdiorepo https://htdio-stg.github.io/deploy-templates/`<br>`helm repo update`<br>`helm install 2dust-v2rayn htdiorepo/2dust-v2rayn` |
+
+
 
 ## 📦 What's Inside
 
