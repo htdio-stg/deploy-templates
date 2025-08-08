@@ -1,0 +1,45 @@
+spec:
+  name: deploystack
+  region: nyc
+  services:
+    - name: postgres
+      image:
+        registry_type: DOCKER_HUB
+        registry: library
+        repository: postgres
+        tag: 16-alpine
+      instance_count: 1
+      instance_size_slug: basic-xxs
+      run_command: ""
+      envs: []
+      health_check:
+        port: 5432
+      internal_ports:
+        - 5432
+    - name: linkwarden
+      image:
+        registry_type: GHCR
+        registry: ghcr.io
+        repository: linkwarden/linkwarden
+        tag: latest
+      instance_count: 1
+      instance_size_slug: basic-xxs
+      run_command: ""
+      envs:
+        - key: DATABASE_URL
+          value: postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/postgres
+      http_port: 3000
+      routes:
+        - path: /
+    - name: meilisearch
+      image:
+        registry_type: DOCKER_HUB
+        registry: getmeili
+        repository: meilisearch
+        tag: v1.12.8
+      instance_count: 1
+      instance_size_slug: basic-xxs
+      run_command: ""
+      envs: []
+      routes:
+        - path: /meilisearch

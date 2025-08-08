@@ -1,0 +1,1 @@
+To encode binaries (like images, documents, etc.) use the file upload form a little further down on this page.

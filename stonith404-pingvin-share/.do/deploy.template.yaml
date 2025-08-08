@@ -1,0 +1,19 @@
+spec:
+  name: deploystack
+  region: nyc
+  services:
+    - name: default
+      image:
+        registry_type: DOCKER_HUB
+        registry: stonith404
+        repository: pingvin-share
+        tag: latest
+      instance_count: 1
+      instance_size_slug: basic-xxs
+      run_command: ""
+      envs:
+        - key: TRUST_PROXY
+          value: "false"
+      http_port: 3000
+      routes:
+        - path: /

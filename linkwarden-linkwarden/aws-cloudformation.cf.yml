@@ -1,0 +1,194 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Generated from container configuration by docker-to-iac
+Parameters:
+  VPC:
+    Type: AWS::EC2::VPC::Id
+  SubnetA:
+    Type: AWS::EC2::Subnet::Id
+  SubnetB:
+    Type: AWS::EC2::Subnet::Id
+  ServiceName:
+    Type: String
+    Default: DeployStackService
+Resources:
+  Cluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: !Join ['', [!Ref ServiceName, Cluster]]
+  ExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Join ['', [!Ref ServiceName, ExecutionRole]]
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+  LogGrouppostgres:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Join ['', [/ecs/, !Ref ServiceName, TaskDefinitionpostgres]]
+  TaskDefinitionpostgres:
+    Type: AWS::ECS::TaskDefinition
+    DependsOn:
+      - LogGrouppostgres
+    Properties:
+      Family: !Join ['', [!Ref ServiceName, TaskDefinitionpostgres]]
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      Cpu: 512
+      Memory: 1GB
+      ExecutionRoleArn: !Ref ExecutionRole
+      ContainerDefinitions:
+        - Name: postgres
+          Image: docker.io/library/postgres:16-alpine
+          ReadonlyRootFilesystem: false
+          PortMappings: []
+          Environment: []
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-region: !Ref AWS::Region
+              awslogs-group: !Ref LogGrouppostgres
+              awslogs-stream-prefix: ecs
+  ContainerSecurityGrouppostgres:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Join ['', [postgres, ContainerSecurityGroup]]
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        IpProtocol: tcp
+        FromPort: 0
+        ToPort: 65535
+        CidrIp: 0.0.0.0/0
+  Servicepostgres:
+    Type: AWS::ECS::Service
+    Properties:
+      ServiceName: postgres
+      Cluster: !Ref Cluster
+      TaskDefinition: !Ref TaskDefinitionpostgres
+      DesiredCount: 1
+      LaunchType: FARGATE
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          Subnets:
+            - !Ref SubnetA
+            - !Ref SubnetB
+          SecurityGroups:
+            - !Ref ContainerSecurityGrouppostgres
+  LogGrouplinkwarden:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Join ['', [/ecs/, !Ref ServiceName, TaskDefinitionlinkwarden]]
+  TaskDefinitionlinkwarden:
+    Type: AWS::ECS::TaskDefinition
+    DependsOn:
+      - LogGrouplinkwarden
+    Properties:
+      Family: !Join ['', [!Ref ServiceName, TaskDefinitionlinkwarden]]
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      Cpu: 512
+      Memory: 1GB
+      ExecutionRoleArn: !Ref ExecutionRole
+      ContainerDefinitions:
+        - Name: linkwarden
+          Image: ghcr.io/linkwarden/linkwarden:latest
+          ReadonlyRootFilesystem: false
+          PortMappings:
+            - ContainerPort: 3000
+          Environment:
+            - name: DATABASE_URL
+              value: postgresql://postgres:${POSTGRES_PASSWORD}@postgres:5432/postgres
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-region: !Ref AWS::Region
+              awslogs-group: !Ref LogGrouplinkwarden
+              awslogs-stream-prefix: ecs
+  ContainerSecurityGrouplinkwarden:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Join ['', [linkwarden, ContainerSecurityGroup]]
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        IpProtocol: tcp
+        FromPort: 0
+        ToPort: 65535
+        CidrIp: 0.0.0.0/0
+  Servicelinkwarden:
+    Type: AWS::ECS::Service
+    Properties:
+      ServiceName: linkwarden
+      Cluster: !Ref Cluster
+      TaskDefinition: !Ref TaskDefinitionlinkwarden
+      DesiredCount: 1
+      LaunchType: FARGATE
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          Subnets:
+            - !Ref SubnetA
+            - !Ref SubnetB
+          SecurityGroups:
+            - !Ref ContainerSecurityGrouplinkwarden
+  LogGroupmeilisearch:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Join ['', [/ecs/, !Ref ServiceName, TaskDefinitionmeilisearch]]
+  TaskDefinitionmeilisearch:
+    Type: AWS::ECS::TaskDefinition
+    DependsOn:
+      - LogGroupmeilisearch
+    Properties:
+      Family: !Join ['', [!Ref ServiceName, TaskDefinitionmeilisearch]]
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      Cpu: 512
+      Memory: 1GB
+      ExecutionRoleArn: !Ref ExecutionRole
+      ContainerDefinitions:
+        - Name: meilisearch
+          Image: docker.io/getmeili/meilisearch:v1.12.8
+          ReadonlyRootFilesystem: false
+          PortMappings: []
+          Environment: []
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-region: !Ref AWS::Region
+              awslogs-group: !Ref LogGroupmeilisearch
+              awslogs-stream-prefix: ecs
+  ContainerSecurityGroupmeilisearch:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Join ['', [meilisearch, ContainerSecurityGroup]]
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        IpProtocol: tcp
+        FromPort: 0
+        ToPort: 65535
+        CidrIp: 0.0.0.0/0
+  Servicemeilisearch:
+    Type: AWS::ECS::Service
+    Properties:
+      ServiceName: meilisearch
+      Cluster: !Ref Cluster
+      TaskDefinition: !Ref TaskDefinitionmeilisearch
+      DesiredCount: 1
+      LaunchType: FARGATE
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          Subnets:
+            - !Ref SubnetA
+            - !Ref SubnetB
+          SecurityGroups:
+            - !Ref ContainerSecurityGroupmeilisearch

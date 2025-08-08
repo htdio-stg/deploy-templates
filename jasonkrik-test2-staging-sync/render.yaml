@@ -1,0 +1,34 @@
+services:
+  - name: dd_frontend
+    type: web
+    runtime: image
+    image:
+      url: docker.io/library/nginx:latest
+    startCommand: ""
+    plan: starter
+    region: oregon
+    envVars:
+      - key: PORT
+        value: "80"
+      - key: BACKEND_URL
+        fromService:
+          name: dd_backend
+          type: web
+          property: hostport
+    disk:
+      name: dd_frontend-usr-share-nginx-html
+      mountPath: /usr/share/nginx/html
+      sizeGB: 10
+  - name: dd_backend
+    type: web
+    runtime: image
+    image:
+      url: docker.io/library/nginx:latest
+    startCommand: ""
+    plan: starter
+    region: oregon
+    envVars:
+      - key: STORAGE_TYPE
+        value: s3_is_expensive_yes_yes
+      - key: PORT
+        value: "80"

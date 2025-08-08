@@ -1,0 +1,16 @@
+version: '3.8'
+services:
+  dd_frontend:
+    image: nginx:latest
+    ports:
+      - 80:80
+    volumes:
+      - ./html5up-stellar/:/usr/share/nginx/html
+    environment:
+      - BACKEND_URL=${BACKEND_URL_ADDR}
+  dd_backend:
+    image: nginx:latest
+    ports:
+      - 80:80
+    environment:
+      - STORAGE_TYPE=${THE_STORAGE:-hetzner5}      

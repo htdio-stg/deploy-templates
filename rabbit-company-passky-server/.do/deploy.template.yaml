@@ -1,0 +1,23 @@
+spec:
+  name: deploystack
+  region: nyc
+  services:
+    - name: passky-server
+      image:
+        registry_type: DOCKER_HUB
+        registry: rabbitcompany
+        repository: passky-server
+        tag: latest
+      instance_count: 1
+      instance_size_slug: basic-xxs
+      run_command: ""
+      envs:
+        - key: ADMIN_USERNAME
+          value: "asdf"
+        - key: ADMIN_PASSWORD
+          value: "asdfasdf"
+        - key: DATABASE_ENGINE
+          value: "sqlite"
+      http_port: 80
+      routes:
+        - path: /

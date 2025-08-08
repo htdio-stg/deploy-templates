@@ -1,0 +1,20 @@
+spec:
+  name: deploystack
+  region: nyc
+  services:
+    - name: default
+      image:
+        registry_type: DOCKER_HUB
+        registry: library
+        repository: nginx
+        tag: first2
+      instance_count: 1
+      instance_size_slug: basic-xxs
+      run_command: ""
+      envs:
+        - key: pipi
+          value: nie jest
+          scope: RUN_TIME
+      http_port: 5244
+      routes:
+        - path: /

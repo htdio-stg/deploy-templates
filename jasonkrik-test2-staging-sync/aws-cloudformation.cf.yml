@@ -1,0 +1,143 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Generated from container configuration by docker-to-iac
+Parameters:
+  VPC:
+    Type: AWS::EC2::VPC::Id
+  SubnetA:
+    Type: AWS::EC2::Subnet::Id
+  SubnetB:
+    Type: AWS::EC2::Subnet::Id
+  ServiceName:
+    Type: String
+    Default: DeployStackService
+Resources:
+  Cluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: !Join ['', [!Ref ServiceName, Cluster]]
+  ExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Join ['', [!Ref ServiceName, ExecutionRole]]
+      AssumeRolePolicyDocument:
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+  LogGroupdd_frontend:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Join ['', [/ecs/, !Ref ServiceName, TaskDefinitiondd_frontend]]
+  TaskDefinitiondd_frontend:
+    Type: AWS::ECS::TaskDefinition
+    DependsOn:
+      - LogGroupdd_frontend
+    Properties:
+      Family: !Join ['', [!Ref ServiceName, TaskDefinitiondd_frontend]]
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      Cpu: 512
+      Memory: 1GB
+      ExecutionRoleArn: !Ref ExecutionRole
+      ContainerDefinitions:
+        - Name: dd_frontend
+          Image: docker.io/library/nginx:latest
+          ReadonlyRootFilesystem: false
+          PortMappings:
+            - ContainerPort: 80
+          Environment:
+            - name: BACKEND_URL
+              value: ${BACKEND_URL_ADDR}
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-region: !Ref AWS::Region
+              awslogs-group: !Ref LogGroupdd_frontend
+              awslogs-stream-prefix: ecs
+  ContainerSecurityGroupdd_frontend:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Join ['', [dd_frontend, ContainerSecurityGroup]]
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        IpProtocol: tcp
+        FromPort: 0
+        ToPort: 65535
+        CidrIp: 0.0.0.0/0
+  Servicedd_frontend:
+    Type: AWS::ECS::Service
+    Properties:
+      ServiceName: dd_frontend
+      Cluster: !Ref Cluster
+      TaskDefinition: !Ref TaskDefinitiondd_frontend
+      DesiredCount: 1
+      LaunchType: FARGATE
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          Subnets:
+            - !Ref SubnetA
+            - !Ref SubnetB
+          SecurityGroups:
+            - !Ref ContainerSecurityGroupdd_frontend
+  LogGroupdd_backend:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Join ['', [/ecs/, !Ref ServiceName, TaskDefinitiondd_backend]]
+  TaskDefinitiondd_backend:
+    Type: AWS::ECS::TaskDefinition
+    DependsOn:
+      - LogGroupdd_backend
+    Properties:
+      Family: !Join ['', [!Ref ServiceName, TaskDefinitiondd_backend]]
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      Cpu: 512
+      Memory: 1GB
+      ExecutionRoleArn: !Ref ExecutionRole
+      ContainerDefinitions:
+        - Name: dd_backend
+          Image: docker.io/library/nginx:latest
+          ReadonlyRootFilesystem: false
+          PortMappings:
+            - ContainerPort: 80
+          Environment:
+            - name: STORAGE_TYPE
+              value: s3_is_expensive_yes_yes
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-region: !Ref AWS::Region
+              awslogs-group: !Ref LogGroupdd_backend
+              awslogs-stream-prefix: ecs
+  ContainerSecurityGroupdd_backend:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: !Join ['', [dd_backend, ContainerSecurityGroup]]
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        IpProtocol: tcp
+        FromPort: 0
+        ToPort: 65535
+        CidrIp: 0.0.0.0/0
+  Servicedd_backend:
+    Type: AWS::ECS::Service
+    Properties:
+      ServiceName: dd_backend
+      Cluster: !Ref Cluster
+      TaskDefinition: !Ref TaskDefinitiondd_backend
+      DesiredCount: 1
+      LaunchType: FARGATE
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          Subnets:
+            - !Ref SubnetA
+            - !Ref SubnetB
+          SecurityGroups:
+            - !Ref ContainerSecurityGroupdd_backend

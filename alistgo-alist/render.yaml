@@ -1,0 +1,18 @@
+services:
+  - name: default
+    type: web
+    runtime: image
+    image:
+      url: docker.io/library/nginx:first2
+    startCommand: ""
+    plan: starter
+    region: oregon
+    envVars:
+      - key: pipi
+        value: nie jest
+      - key: PORT
+        value: "5244"
+    disk:
+      name: default-opt-alist-data
+      mountPath: /opt/alist/data
+      sizeGB: 10
